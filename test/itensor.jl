@@ -8,9 +8,11 @@ const te = TimeEvoMPS
     A = ITensor(Amat, prime(s1),prime(s2),s1,s2)
 
     Aexp = te.exp(A,te.findprimeinds(A,1))
-    Amatexp = exp(reshape(Amat,4,4))
-    Aexp_from_mat = ITensor(reshape(Amatexp,2,2,2,2), prime(s1),prime(s2),s1,s2)
+    Amatexp = reshape( exp(reshape(Amat,4,4)), 2,2,2,2)
+    Aexp_from_mat = ITensor(Amatexp, prime(s1),prime(s2),s1,s2)
     @test Aexp ≈ Aexp_from_mat
+
+
 
     #test that exponentiation works when indices need to be permuted
     Aexp = te.exp(A,te.findprimeinds(A,0))

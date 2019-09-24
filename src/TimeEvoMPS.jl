@@ -6,6 +6,8 @@ using LinearAlgebra
 #TODO : implement tDMRG algorithm (apply gates by sweeping)
 
 include("itensor.jl")
+include("bondop.jl")
+include("observer.jl")
 include("tebd.jl")
 
 end # module

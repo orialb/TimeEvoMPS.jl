@@ -1,45 +1,18 @@
 export BondGate,apply_gate!,BondOperator,
        tdmrg!
 
-struct BondGate
-    G::ITensor
-    b::Int
-end
-
-bond(G::BondGate) = G.b
-
-import Base: *
-*(G::BondGate, wf::ITensor) = G.G*wf
-
-const BondOperator = Vector{BondGate}
-
-exp(G::BondGate, dt; hermitian=false) = BondGate( exp(dt*G.G, findprimeinds(G.G); hermitian=hermitian), G.b)
-
 function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     b = bond(G)
     orthogonalize!(psi,b)
     wf = psi[b]*psi[b+1]
-    println("bond $b")
-    println(scalar(wf*wf))
-    println("llim : $(leftLim(psi)) , rlim: $(rightLim(psi))")
     wf = noprime( G*(psi[b]*psi[b+1]) )
     replaceBond!(psi, b, wf; kwargs...)
-    println("llim : $(leftLim(psi)) , rlim: $(rightLim(psi))")
 end
 
 function apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...)
     for G in Gs
         apply_gate!(psi,G ; kwargs...)
     end
-end
-
-abstract type TEvoObserver end
-
-observe!(o::TEvoObserver,args...) = nothing
-checkdone!(o::TEvoObserver,args...) = false
-measurement_step(o::TEvoObserver) = 0
-
-struct NoTEvoObserver <: TEvoObserver
 end
 
 function tdmrg!(psi::MPS, H::BondOperator, dt::Number, tf::Number ; kwargs... )
@@ -55,15 +28,21 @@ function tdmrg!(psi::MPS, H::BondOperator, dt::Number, tf::Number ; kwargs... )
     orthogonalize_step > 0 && (nbunch = gcd(nbunch,orthogonalize_step))
 
     L = length(psi)
+
     Uhalf = exp.(H[1:2:L-1],-1im*dt/2)
-    Us = [exp.(H[reverse(2:2:L-1)], -1im*dt), exp.(H[1:2:L-1], -1im*dt)]
+    imag_evo = typeof(dt) <: Complex && real(dt) ==0
+    if !(imag_evo)
+        Us = [exp.(H[reverse(2:2:L-1)], -1im*dt), exp.(H[1:2:L-1], -1im*dt)]
+    else
+        Us = [exp.(H,-1im*dt)]
+    end
 
     step = 0
     while step < nsteps
         apply_gates!(psi, Uhalf ; dir = "fromleft", kwargs...)
         for i in 1:nbunch-1
-            for (i,U) in enumerate(Us)
-                dir = i==1 ? "fromright" : "fromleft"
+            for (j,U) in enumerate(Us)
+                dir = (j==1 && !(imag_evo)) ? "fromright" : "fromleft"
                 apply_gates!(psi,U; dir=dir, kwargs...)
             end
             step += 1

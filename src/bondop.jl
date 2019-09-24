@@ -72,7 +72,9 @@ Base.length(bo::BondOperator) = length(bo.sites)
 siteterms(bo::BondOperator,i) = bo.siteterms[i]
 bondterms(bo::BondOperator,b) = bo.bondterms[b]
 
+ITensors.add!(bo::BondOperator, op::String, i::Int) = add!(bo,1.,op,i)
 ITensors.add!(bo::BondOperator, c::Number, op::String, i::Int) = (push!(bo.siteterms[i], SiteTerm(i,c,op)))
+ITensors.add!(bo::BondOperator, op1::String, op2::String, b::Int) = add!(bo,1.,op1,op2,b)
 ITensors.add!(bo::BondOperator,c::Number, op1::String, op2::String, b::Int) = (push!(bo.bondterms[b], BondTerm(b,c,op1,op2)))
 
 function bondgate(bo::BondOperator, b::Int)

@@ -5,8 +5,9 @@ end
 
 bond(G::BondGate) = G.b
 
-import Base: *
+import Base: * , ==
 *(G::BondGate, wf::ITensor) = G.G*wf
+==(G1::BondGate,G2::BondGate) = (G1.G == G2.G && G1.b == G2.b)
 
 const GateList = Vector{BondGate}
 
@@ -87,7 +88,7 @@ function bondgate(bo::BondOperator, b::Int)
         fac = i==length(bo) || i==1 ? 1 : 1/2
         f = (i,o) -> fac*(i==b ? op(sites,o)*op(sites,"Id",b+1) : op(sites,"Id",b)*op(sites,o) )
         for st in siteterms(bo,i)
-            gate += coeff(st)*f(i,st)
+            gate += f(i,st)
         end
     end
     return BondGate(gate,b)

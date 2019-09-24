@@ -15,7 +15,7 @@ function apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...)
     end
 end
 
-function tdmrg!(psi::MPS, H::BondOperator, dt::Number, tf::Number ; kwargs... )
+function tdmrg!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
     nsteps = Int(tf/dt)
     order = get(kwargs, :order,2)
     order == 2 || throw("Time evolution with trotter decomposition of order

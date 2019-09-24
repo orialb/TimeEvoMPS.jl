@@ -1,5 +1,5 @@
 export BondGate,apply_gate!,BondOperator,
-       tdmrg!
+       tebd!,GateList
 
 function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     b = bond(G)
@@ -15,7 +15,17 @@ function apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...)
     end
 end
 
-function tdmrg!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
+
+function reorthogonalize!(psi::MPS)
+    ITensors.setLeftLim!(psi,-1)
+    ITensors.setRightLim!(psi,length(psi)+2)
+    orthogonalize!(psi,1)
+    psi[1] /= sqrt(inner(psi,psi))
+end
+
+tebd!(psi::MPS,H::BondOperator, args...; kwargs...) = tebd!(psi,gates(H),args...;kwargs...)
+
+function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
     nsteps = Int(tf/dt)
     order = get(kwargs, :order,2)
     order == 2 || throw("Time evolution with trotter decomposition of order
@@ -30,19 +40,14 @@ function tdmrg!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
     L = length(psi)
 
     Uhalf = exp.(H[1:2:L-1],-1im*dt/2)
-    imag_evo = typeof(dt) <: Complex && real(dt) ==0
-    if !(imag_evo)
-        Us = [exp.(H[reverse(2:2:L-1)], -1im*dt), exp.(H[1:2:L-1], -1im*dt)]
-    else
-        Us = [exp.(H,-1im*dt)]
-    end
+    Us = [exp.(H[reverse(2:2:L-1)], -1im*dt), exp.(H[1:2:L-1], -1im*dt)]
 
     step = 0
     while step < nsteps
         apply_gates!(psi, Uhalf ; dir = "fromleft", kwargs...)
         for i in 1:nbunch-1
             for (j,U) in enumerate(Us)
-                dir = (j==1 && !(imag_evo)) ? "fromright" : "fromleft"
+                dir = j==1 ? "fromright" : "fromleft"
                 apply_gates!(psi,U; dir=dir, kwargs...)
             end
             step += 1
@@ -53,9 +58,11 @@ function tdmrg!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
         apply_gates!(psi,Uhalf; dir = "fromleft",kwargs...)
 
         step += 1
+        (orthogonalize_step>0 && step % orthogonalize_step ==0) && reorthogonalize!(psi)
         observe!(obs,psi)
         checkdone!(obs,psi) && break
     end
     return psi
 end
+
 

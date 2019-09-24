@@ -1,3 +1,6 @@
+export add!, BondOperator, bondgate,
+       gates, siteterms, bondterms, measure
+
 struct BondGate
     G::ITensor
     b::Int
@@ -12,6 +15,24 @@ import Base: * , ==
 const GateList = Vector{BondGate}
 
 exp(G::BondGate, dt; hermitian=false) = BondGate( exp(dt*G.G, findprimeinds(G.G); hermitian=hermitian), G.b)
+
+"""
+    measure(H::GateList,psi::MPS)
+measure the expectation value of the operator
+defined by ``\\sum_i H_i`` with respect to an
+MPS `psi`.
+"""
+function measure(H::GateList,psi::MPS)
+    energy = 0
+    for (b,h) in enumerate(H)
+        orthogonalize!(psi,b)
+        wf = psi[b]*psi[b+1]
+        energy += scalar(dag(wf)*noprime( h*wf))
+    end
+    return energy
+end
+
+
 
 ####
 ## BondOperator
@@ -95,8 +116,7 @@ function bondgate(bo::BondOperator, b::Int)
 end
 
 
-gates(bo::BondOperator) = (x->bondgate(bo,x)).(1:length(b)-1)
+gates(bo::BondOperator) = (x->bondgate(bo,x)).(1:length(bo)-1)
 
-export add!, BondOperator, bondgate, gates,siteterms,bondterms
 
 

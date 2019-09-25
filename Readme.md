@@ -1,4 +1,6 @@
 # TimeEvoMPS (WIP)
+[![Build Status](https://travis-ci.org/orialb/TimeEvoMPS.jl.svg?branch=master)](https://travis-ci.org/orialb/TimeEvoMPS.jl)
+
 The goal of this package is to provide implementations of time-evolution algorithms for matrix-product states using 
 [ITensors.jl](https://github.com/ITensor/ITensors.jl). 
 

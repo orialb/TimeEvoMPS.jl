@@ -62,7 +62,7 @@ end
 @testset "Compare imaginary time evolution to dmrg" begin
     N=10
     J = 1.
-    h = 1.
+    h = 0.5
     sites = spinHalfSites(N)
     psi = randomMPS(sites)
     H = tfi_bondop(sites,J,h)
@@ -74,7 +74,11 @@ end
         push!(Es, measure(gates(H),psi))
     end
 
-    _,energy_dmrg = TFIgs(sites,1.)
+    # exact expression for ground-state energy
+    # at criticality (ref? took it from ITensors.jl tests)
 
-    @test Es[end] ≈ energy_dmrg
+    eexact = 0.25 -0.25/sin(π/(4*N + 2))
+    # _,energy_dmrg = TFIgs(sites,h)
+
+    @test Es[end] ≈ eexact atol=1e-4
 end

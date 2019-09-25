@@ -18,7 +18,7 @@ After you have installed ITensors.jl you can go ahead and install TimeEvoMPS:
 ````
 
 # Usage
-The following code example shows how to evolve an MPS for a spin-half chain with the transverse-field Ising Hamiltonian, starting from a fully polarized state (functionality to perform measurments during time evolution is still missing, but will be added very soon).
+The following code example shows how to evolve an MPS for a spin-half chain with the transverse-field Ising Hamiltonian, starting from a fully polarized state (functionality to perform measurements during time evolution is still missing, but will be added very soon).
 
 ```julia
 using ITensors, TimeEvoMPS

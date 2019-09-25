@@ -13,7 +13,7 @@ end
 """
 utility function for testing gates created from BondOperator
 """
-function TFIsingBondGate(sites::SiteSet, b, J,h)
+function TFIsingBondGate(sites, b, J,h)
     fac = i -> (i==1 || i==length(sites) ? 1 : 1/2)
     G = J*op(sites,"Sz",b)*op(sites,"Sz",b+1) +
             h*(fac(b)*op(sites,"Sx",b)*op(sites,"Id",b+1) + fac(b+1)*op(sites,"Id",b)*op(sites,"Sx",b+1))

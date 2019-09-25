@@ -1,7 +1,6 @@
 using Test, TimeEvoMPS, ITensors
 using TimeEvoMPS: isleftortho, isrightortho
 
-
 "create a BondOperator for the transverse-field ising model"
 function tfi_bondop(sites,J,h)
     N = length(sites)
@@ -42,13 +41,13 @@ end
 
 "get ground state of transverse-field Ising model"
 function TFIgs(sites,h)
-    ampo = AutoMPO(sites)
+    ampo = AutoMPO()
     for j=1:length(sites)-1
         add!(ampo,-1.,"Sz",j,"Sz",j+1)
         add!(ampo,-h,"Sx",j)
     end
     add!(ampo,-h,"Sx",length(sites))
-    H = toMPO(ampo)
+    H = MPO(ampo,sites)
 
     psi0 = randomMPS(sites)
     sweeps = Sweeps(15)
@@ -58,8 +57,7 @@ function TFIgs(sites,h)
     return psi,energy
 end
 
-
-@testset "Compare imaginary time evolution to dmrg" begin
+@testset "Imaginary time-evolution TFI model" begin
     N=10
     J = 1.
     h = 0.5
@@ -78,7 +76,5 @@ end
     # at criticality (ref? took it from ITensors.jl tests)
 
     eexact = 0.25 -0.25/sin(π/(4*N + 2))
-    # _,energy_dmrg = TFIgs(sites,h)
-
     @test Es[end] ≈ eexact atol=1e-4
 end

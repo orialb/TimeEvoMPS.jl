@@ -32,8 +32,6 @@ function measure(H::GateList,psi::MPS)
     return energy
 end
 
-
-
 ####
 ## BondOperator
 ###
@@ -57,7 +55,6 @@ function ITensors.op(sites, sop::SiteTerm)
     return coeff(sop)*o
 end
 
-
 struct BondTerm
     b::Int
     coeff::Number
@@ -77,18 +74,16 @@ rightop(sites,bop::BondTerm) = op(sites,bop.rightop)
 A representation of a generic operator which is composed of a sum of one- and two- site terms
 """
 struct BondOperator
-    sites::SiteSet
+    sites::Vector{Index}
     bondterms::Dict{Int,Vector{BondTerm}}
     siteterms::Dict{Int,Vector{SiteTerm}}
 
-    BondOperator(sites::SiteSet) =
+    BondOperator(sites::Vector{Index}) =
         new(sites, Dict(b=> Vector{BondTerm}() for b in 1:length(sites)-1),
             Dict(i => Vector{SiteTerm}() for i in 1:length(sites)))
 end
 
-
 Base.length(bo::BondOperator) = length(bo.sites)
-
 
 #TODO : add some error messages when trying to access site or bond out of range
 siteterms(bo::BondOperator,i) = bo.siteterms[i]
@@ -114,7 +109,6 @@ function bondgate(bo::BondOperator, b::Int)
     end
     return BondGate(gate,b)
 end
-
 
 gates(bo::BondOperator) = (x->bondgate(bo,x)).(1:length(bo)-1)
 

@@ -32,10 +32,14 @@ end
 
     psi0 = randomMPS(sites)
     psi = deepcopy(psi0)
-    tebd!(psi,H,0.01,5.)
-    tebd!(psi,H,-0.01,-5.)
+    tebd!(psi,H,0.01,1.)
+    tebd!(psi,H,-0.01,-1.)
 
     @test inner(psi0,psi) ≈ 1
+
+    #check that bond dimension is growing to maximum during evolution
+    psi = productMPS(sites,ones(Int,N))
+    tebd!(psi,H,0.01,5.)
     @test maxLinkDim(psi) == 2^5
 end
 
@@ -62,7 +66,7 @@ end
     J = 1.
     h = 0.5
     sites = spinHalfSites(N)
-    psi = randomMPS(sites)
+    psi = productMPS(sites,ones(Int,N))
     H = tfi_bondop(sites,J,h)
     Hgates = gates(H)
 

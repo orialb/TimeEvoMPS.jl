@@ -50,7 +50,7 @@ function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     replaceBond!(psi, b, wf; kwargs...)
 end
 
-apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...) = map(x->apply_gate!(psi,x;kwargs...), Gs)
+apply_gates!(psi, Gs::Vector{BondGate} ; kwargs...) = map(x->apply_gate!(psi,x;kwargs...), Gs)
 
 """
     measure(H::GateList,psi::MPS)

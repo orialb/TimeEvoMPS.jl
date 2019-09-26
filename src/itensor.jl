@@ -1,5 +1,6 @@
 # some extensions for ITensors functionality
 # the goal is to eventually contribute these upstream if found appropriate
+export isleftortho, isrightortho
 
 function findprimeinds(is::IndexSet, plevel::Int=-1)
     if plevel>=0

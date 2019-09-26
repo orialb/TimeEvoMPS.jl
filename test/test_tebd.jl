@@ -82,3 +82,4 @@ end
     eexact = 0.25 -0.25/sin(π/(4*N + 2))
     @test Es[end] ≈ eexact atol=1e-4
 end
+

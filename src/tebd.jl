@@ -1,9 +1,9 @@
 export apply_gate!,
        tebd!
 
-tebd!(psi::MPS,H::BondOperator, args...; kwargs...) = tebd!(psi,gates(H),args...;kwargs...)
+tebd!(psi,H::BondOperator, args...; kwargs...) = tebd!(psi,gates(H),args...;kwargs...)
 
-function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
+function tebd!(psi, H::GateList, dt::Number, tf::Number ; kwargs... )
     # TODO: think of the best way to avoid inexact error when dt is very small
     # one option would be to use round(tf/dt) and verify that abs(round(tf/dt)-tf/dt)
     # is smaller than some threshold. Another option would be to use big(Rational(dt)).

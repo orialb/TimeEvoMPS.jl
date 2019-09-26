@@ -1,5 +1,5 @@
-export BondGate,apply_gate!,BondOperator,
-       tebd!,GateList
+export apply_gate!,
+       tebd!
 
 function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     b = bond(G)

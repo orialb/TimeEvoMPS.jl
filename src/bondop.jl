@@ -1,4 +1,4 @@
-export add!, BondOperator, bondgate,
+export add!, BondOperator, bondgate, BondGate,
        gates, siteterms, bondterms, measure
 
 struct BondGate

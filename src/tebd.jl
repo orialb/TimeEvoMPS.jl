@@ -1,28 +1,6 @@
 export apply_gate!,
        tebd!
 
-function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
-    b = bond(G)
-    orthogonalize!(psi,b)
-    wf = psi[b]*psi[b+1]
-    wf = noprime( G*(psi[b]*psi[b+1]) )
-    replaceBond!(psi, b, wf; kwargs...)
-end
-
-function apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...)
-    for G in Gs
-        apply_gate!(psi,G ; kwargs...)
-    end
-end
-
-
-function reorthogonalize!(psi::MPS)
-    ITensors.setLeftLim!(psi,-1)
-    ITensors.setRightLim!(psi,length(psi)+2)
-    orthogonalize!(psi,1)
-    psi[1] /= sqrt(inner(psi,psi))
-end
-
 tebd!(psi::MPS,H::BondOperator, args...; kwargs...) = tebd!(psi,gates(H),args...;kwargs...)
 
 function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
@@ -42,8 +20,8 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
 
     L = length(psi)
 
-    Uhalf = exp.(H[1:2:L-1],-1im*dt/2)
-    Us = [exp.(H[reverse(2:2:L-1)], -1im*dt), exp.(H[1:2:L-1], -1im*dt)]
+    Uhalf = exp.(-1im*dt/2 .* H[1:2:L-1],)
+    Us = [exp.( -1im*dt .* H[reverse(2:2:L-1)]), exp.(-1im*dt .* H[1:2:L-1])]
 
     step = 0
     while step < nsteps

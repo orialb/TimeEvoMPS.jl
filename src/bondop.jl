@@ -1,36 +1,5 @@
-export add!, BondOperator, bondgate, BondGate,
-       gates, siteterms, bondterms, measure
-
-struct BondGate
-    G::ITensor
-    b::Int
-end
-
-bond(G::BondGate) = G.b
-
-import Base: * , ==
-*(G::BondGate, wf::ITensor) = G.G*wf
-==(G1::BondGate,G2::BondGate) = (G1.G == G2.G && G1.b == G2.b)
-
-const GateList = Vector{BondGate}
-
-exp(G::BondGate, dt; hermitian=false) = BondGate( exp(dt*G.G, findprimeinds(G.G); hermitian=hermitian), G.b)
-
-"""
-    measure(H::GateList,psi::MPS)
-measure the expectation value of the operator
-defined by ``\\sum_i H_i`` with respect to an
-MPS `psi`.
-"""
-function measure(H::GateList,psi::MPS)
-    energy = 0
-    for (b,h) in enumerate(H)
-        orthogonalize!(psi,b)
-        wf = psi[b]*psi[b+1]
-        energy += scalar(dag(wf)*noprime( h*wf))
-    end
-    return energy
-end
+export add!, BondOperator, bondgate,
+       gates, siteterms, bondterms
 
 ####
 ## BondOperator

@@ -1,7 +1,5 @@
-# some extensions for ITensor functionality
-# the goal is to eventually contribute these upstream
-import ITensors: _permute_for_factorize
-import LinearAlgebra.exp
+# some extensions for ITensors functionality
+# the goal is to eventually contribute these upstream if found appropriate
 
 function findprimeinds(is::IndexSet, plevel::Int=-1)
     if plevel>=0
@@ -25,6 +23,13 @@ function isrightortho(M,i)
     R = M[i]*prime(dag(M[i]),i==length(M) ? "Link" : commonindex(M[i],M[i-1]))
     r = linkindex(M,i-1)
     return norm(R-delta(r,r')) < 1E-12
+end
+
+function reorthogonalize!(psi::MPS)
+    ITensors.setLeftLim!(psi,-1)
+    ITensors.setRightLim!(psi,length(psi)+2)
+    orthogonalize!(psi,1)
+    psi[1] /= sqrt(inner(psi,psi))
 end
 
 

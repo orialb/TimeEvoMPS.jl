@@ -44,6 +44,10 @@ function debugortho(M,i)
 end
 
 
+# TODO: seems that for large bond dimensions using VidalMPS
+# is a bit slower than MPS. It seems to be allocating a bit more
+# (which I guess makes sense). Check whether allocation can be reduced
+# more. 
 function apply_gate!(psi::VidalMPS,G::BondGate ; kwargs...)
     b = bond(G)
     wf_ = noprime( G*(psi[b]*psi[b+1]) )
@@ -55,9 +59,16 @@ function apply_gate!(psi::VidalMPS,G::BondGate ; kwargs...)
 
     normS = sqrt(scalar(S*S))
 
-    psi[b] = wf_*dag(V) / normS
+    psi[b] = wf_*dag(V)
+    ITensors.scale!(psi[b], 1/normS)
     psi[b+1] = V
+
     li = linkindex(psi,b)
-    setSmat!(psi,b,diagITensor(data(store(S)) ./ normS, IndexSet(li',li)))
+    replaceindex!(S,u,li)
+    replaceindex!(S,v,li')
+    ITensors.scale!(S,1/normS)
+
+    # setSmat!(psi,b,diagITensor(data(store(S)) ./ normS, IndexSet(li',li)))
+    setSmat!(psi,b,S)
     return nothing
 end

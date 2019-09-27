@@ -6,6 +6,12 @@ path = "/Users/oria/src/ITensors.jl"
 uuid = "9136182c-28ba-11e9-034c-db9fb085ebd5"
 version = "0.1.0"
 
+[[KrylovKit]]
+deps = ["LinearAlgebra", "Printf"]
+git-tree-sha1 = "b100508f36ac1d713c6976e5a71271912871f4e3"
+uuid = "0b1a1467-8014-51b9-945f-bf0ae24f4b77"
+version = "0.4.0"
+
 [[Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 

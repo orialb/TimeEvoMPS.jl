@@ -50,7 +50,16 @@ function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     replaceBond!(psi, b, wf; kwargs...)
 end
 
-apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...) = map(x->apply_gate!(psi,x;kwargs...), Gs)
+function apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...)
+    dir = get(kwargs,:dir,"fromleft")
+    if dir == "fromleft"
+        return map(x->apply_gate!(psi,x;kwargs...), Gs)
+    elseif dir == "fromright"
+        return map(x->apply_gate!(psi,x;kwargs...), @view Gs[end:-1:1])
+    else
+        throw("`dir` must be either 'fromleft' or 'fromright' ")
+    end
+end
 
 """
     measure(H::GateList,psi::MPS)

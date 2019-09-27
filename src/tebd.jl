@@ -21,22 +21,28 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number ; kwargs... )
     L = length(psi)
 
     Uhalf = exp.(-1im*dt/2 .* H[1:2:L-1],)
-    Us = [exp.( -1im*dt .* H[reverse(2:2:L-1)]), exp.(-1im*dt .* H[1:2:L-1])]
+    Us = [exp.( -1im*dt .* H[2:2:L-1]), exp.(-1im*dt .* H[1:2:L-1])]
 
     step = 0
+    switchdir(dir) =dir== "fromleft" ? "fromright" : "fromleft"
+    dir = "fromleft"
     while step < nsteps
-        apply_gates!(psi, Uhalf ; dir = "fromleft", kwargs...)
+        #TODO : optimize sweep direction!
+        apply_gates!(psi, Uhalf ; dir = dir, kwargs...)
+        dir = switchdir(dir)
         for i in 1:nbunch-1
             for (j,U) in enumerate(Us)
-                dir = j==1 ? "fromright" : "fromleft"
                 apply_gates!(psi,U; dir=dir, kwargs...)
+                dir = switchdir(dir)
             end
             step += 1
             observe!(obs,psi)
             checkdone!(obs,psi) && break
         end
-        apply_gates!(psi,Us[1]; dir="fromright", kwargs...)
-        apply_gates!(psi,Uhalf; dir = "fromleft",kwargs...)
+        apply_gates!(psi,Us[1]; dir=dir, kwargs...)
+        dir = switchdir(dir)
+        apply_gates!(psi,Uhalf; dir = dir,kwargs...)
+        dir = switchdir(dir)
 
         step += 1
         (orthogonalize_step>0 && step % orthogonalize_step ==0) && reorthogonalize!(psi)

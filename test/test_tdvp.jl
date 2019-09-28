@@ -69,27 +69,37 @@ end
 # TODO: compare with ED
 # TODO: find some exact results to compare to, if such exist for time evolution
 
-# I couldn't get it to work yet. seems that norm is not preserved 
-# @testset "Imaginary time-evolution TFI model" begin
-#     N=10
-#     J = 1.
-#     h = 0.5
-#     sites = spinHalfSites(N)
-#     H = tfi_mpo(J,h,sites)
-#     psi = complex!(productMPS(sites,ones(Int,N)))
+@testset "Imaginary time-evolution TFI model" begin
+    N=10
+    J = 1.
+    h = 0.5
+    sites = spinHalfSites(N)
+    H = tfi_mpo(J,h,sites)
+    psi = complex!(productMPS(sites,ones(Int,N)))
 
-#     Es = []
-#     nsteps = 100
-#     for dt in [0.1,0.01]
-#         tdvp!(psi,H,-1im*dt,-1im*nsteps*dt ; maxdim=50, hermitian=true, exp_tol = 1e-12/dt,
-#               verbose = true)
-#         push!(Es, inner(psi,H,psi))
-#     end
+    Es = []
+    nsteps = 100
+    for dt in [0.1]
+        tdvp!(psi,H,-1im*dt,-1im*nsteps*dt ; maxdim=50, hermitian=true, exp_tol = 1e-14/dt,
+              verbose = true)
+        push!(Es, inner(psi,H,psi))
+    end
 
-#     # exact expression for ground-state energy
-#     # at criticality (ref? took it from ITensors.jl tests)
+    # exact expression for ground-state energy
+    # at criticality (ref? took it from ITensors.jl tests)
 
-#     eexact = 0.25 -0.25/sin(π/(4*N + 2))
-#     @test Es[end] ≈ eexact atol=1e-4
-# end
+    eexact = 0.25 -0.25/sin(π/(4*N + 2))
+    @test Es[end] ≈ eexact atol=1e-4
+end
 
+
+psi = complex!(productMPS(sites,ones(Int,N)))
+dt = 0.1
+nsteps =1
+tdvp!(psi,H,-1im*dt,-1im*nsteps*dt ; maxdim=50, hermitian=true, exp_tol = 1e-14/dt,
+              verbose = true)
+
+for i in 1:length(psi)
+    orthogonalize!(psi,i)
+    println(i, " ", scalar(dag(psi[i])*psi[i]))
+end

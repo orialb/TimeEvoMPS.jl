@@ -4,10 +4,36 @@ using ITensors: position!
 singlesite!(PH::ProjMPO) = (PH.nsite = 1)
 twosite!(PH::ProjMPO) = (PH.nsite = 2)
 
+"""
+    tdvp!(psi,H::MPO,dt,tf; kwargs...)
+Evolve the MPS `psi` up to time `tf` using the two-site time-dependent variational
+principle as described in Ref. [1].
+
+# Keyword arguments:
+All keyword arguments controlling truncation which are accepted by ITensors.replaceBond!,
+namely:
+- `maxdim::Int`: If specified, keep only `maxdim` largest singular values after applying gate.
+- `mindim::Int`: Minimal number of singular values to keep if truncation is performed according to
+    value specified by `cutoff`.
+- `cutoff::Float`: If specified, keep the minimal number of singular-values such that the discarded weight is
+    smaller than `cutoff` (but bond dimension will be kept smaller than `maxdim`).
+- `absoluteCutoff::Bool`: If `true` truncate all singular-values whose square is smaller than `cutoff`.
+
+In addition the following keyword arguments are supported:
+- `hermitian::Bool` (`false`) : whether the MPO `H` represents an Hermitian operator. This will be passed to the
+    Krylov exponentiation routine (`KrylovKit.exponentiate`) which will in turn use a Lancosz algorithm in the
+    case of an hermitian operator.
+- `exp_tol::Float` (1e-12/dt) : The tolerance per unit-time for `KrylovKit.exponentiate`.
+- `verbose::Bool` (`false`) : If `true`, print some information after every time-step.
+
+# References:
+[1] Haegeman, J., Lubich, C., Oseledets, I., Vandereycken, B., & Verstraete, F. (2016).
+Unifying time evolution and optimization with matrix product states. Physical Review B, 94(16).
+https://doi.org/10.1103/PhysRevB.94.165116
+"""
 function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     nsteps = Int(tf/dt)
     obs = get(kwargs,:observer, NoTEvoObserver())
-    orthogonalize_step = get(kwargs,:orthogonalize,0)
     hermitian = get(kwargs,:hermitian,false)
     exp_tol = get(kwargs,:exp_tol, 1e-12/dt)
     verbose = get(kwargs,:verbose, false)
@@ -23,28 +49,27 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             twosite!(PH)
             ITensors.position!(PH,psi,b)
             wf = psi[b]*psi[b+1]
-            # @assert scalar(dag(wf)*wf) ≈ 1
             wf, info = exponentiate(PH, -1im*dt/2, wf; ishermitian=hermitian , tol=exp_tol)
             dir = ha==1 ? "fromleft" : "fromright"
             info.converged==0 && throw("exponentiate did not converge")
             replaceBond!(psi,b,wf; dir = dir, kwargs... )
 
-            #evolve with single-site Hamiltonian backward in time
-            singlesite!(PH)
+            # evolve with single-site Hamiltonian backward in time.
+            # In the case of imaginary time-evolution this step
+            # is not necessary (see Ref. [1])
             i = ha==1 ? b+1 : b
-            if 1<i<N
+            if 1<i<N && !(dt isa Complex)
+                singlesite!(PH)
                 ITensors.position!(PH,psi,i)
                 psi[i], info = exponentiate(PH,1im*dt/2,psi[i]; ishermitian=hermitian, tol=exp_tol)
                 info.converged==0 && throw("exponentiate did not converge")
+            elseif i==1 && dt isa Complex
+                psi[i] /= sqrt(real(scalar(dag(psi[i])*psi[i])))
             end
-            @assert b==1 || isleftortho(psi,i-1)
-            @assert i==N || isrightortho(psi,i+1)
-            # @assert scalar(dag(psi[i])*psi[i]) ≈ 1
         end
-        (orthogonalize_step>0 && s % orthogonalize_step ==0) && reorthogonalize!(psi)
         end
         if verbose
-            @printf("Step %d : maxLinkDim= %d, step time= %.3f \n", s,maxLinkDim(psi), stime)
+            @printf("Step %d : maxLinkDim= %d, sweep time= %.3f \n", s,maxLinkDim(psi), stime)
         end
         checkdone!(obs) && break
         # println("step $s, $(inner(psi,psi))")

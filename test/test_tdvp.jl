@@ -55,7 +55,7 @@ measure!(psi::MPS,opname::String) = map(x->measure!(psi,opname,x), 1:length(psi)
     tebd!(psi_tebd,H,dt,tf,cutoff=1e-12)
 
     # problem is that the error in TDVP scales as
-    # Δt^4 while in TEBD2 it scales as Δ^2
+    # Δt^4 while in TEBD2 it scales as Δt^2
     # so I guess we should be ok with difference which is
     # O(Δt^2) ?
     @test inner(psi_tdvp,psi_tebd) ≈ 1 atol= dt^2
@@ -66,8 +66,8 @@ measure!(psi::MPS,opname::String) = map(x->measure!(psi,opname,x), 1:length(psi)
     @test maximum(abs.(sz_tebd - sz_tdvp)) < dt^2
 end
 
-# TODO: compare with ED
-# TODO: find some exact results to compare to, if such exist for time evolution
+# TODO: compare some time-dependent observable with some known results
+# TODO: find some analytical results to compare to
 
 @testset "Imaginary time-evolution TFI model" begin
     N=10
@@ -80,26 +80,13 @@ end
     Es = []
     nsteps = 100
     for dt in [0.1]
-        tdvp!(psi,H,-1im*dt,-1im*nsteps*dt ; maxdim=50, hermitian=true, exp_tol = 1e-14/dt,
-              verbose = true)
+        tdvp!(psi,H,-1im*dt,-1im*nsteps*dt ; maxdim=50, hermitian=true, exp_tol = 1e-14/dt)
         push!(Es, inner(psi,H,psi))
     end
 
     # exact expression for ground-state energy
     # at criticality (ref? took it from ITensors.jl tests)
-
     eexact = 0.25 -0.25/sin(π/(4*N + 2))
     @test Es[end] ≈ eexact atol=1e-4
 end
 
-
-psi = complex!(productMPS(sites,ones(Int,N)))
-dt = 0.1
-nsteps =1
-tdvp!(psi,H,-1im*dt,-1im*nsteps*dt ; maxdim=50, hermitian=true, exp_tol = 1e-14/dt,
-              verbose = true)
-
-for i in 1:length(psi)
-    orthogonalize!(psi,i)
-    println(i, " ", scalar(dag(psi[i])*psi[i]))
-end

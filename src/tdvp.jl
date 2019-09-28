@@ -24,6 +24,7 @@ In addition the following keyword arguments are supported:
     Krylov exponentiation routine (`KrylovKit.exponentiate`) which will in turn use a Lancosz algorithm in the
     case of an hermitian operator.
 - `exp_tol::Float` (1e-12/dt) : The tolerance per unit-time for `KrylovKit.exponentiate`.
+    (note that default value was not optimized yet, so you might want to play around with it)
 - `verbose::Bool` (`false`) : If `true`, print some information after every time-step.
 
 # References:

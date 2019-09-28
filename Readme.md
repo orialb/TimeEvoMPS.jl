@@ -6,7 +6,10 @@ The goal of this package is to provide implementations of time-evolution algorit
 [ITensors.jl](https://github.com/ITensor/ITensors.jl). 
 
 The package is currently at a very initial stage. Contributions and suggestions are very welcome. 
-Currently only TEBD using 2nd order Trotter decomposition is implemented. 
+
+Algorithms currently implemented:
+- TEBD with 2nd order Trotter decomposition [1]
+- TDVP (two-site variant) [2]
 
 
 ## Installation
@@ -18,7 +21,7 @@ In the Julia REPL:
 After you have installed ITensors.jl you can go ahead and install TimeEvoMPS:
 ```
 ] add https://github.com/orialb/TimeEvoMPS.jl
-````
+```
 
 # Usage
 The following code example shows how to evolve an MPS for a spin-half chain with the transverse-field Ising Hamiltonian, starting from a fully polarized state (functionality to perform measurements during time evolution is still missing, but will be added very soon).
@@ -50,3 +53,12 @@ tf =1.
 #evolve
 tebd!(psi,H,dt,tf, maxdim=maxdim)
 ``` 
+
+## References
+[1] Vidal, G. (2004). Efficient Simulation of One-Dimensional Quantum Many-Body
+Systems. Physical Review Letters, 93(4), 040502.
+https://doi.org/10.1103/PhysRevLett.93.040502
+
+[2] Haegeman, J., Lubich, C., Oseledets, I., Vandereycken, B., & Verstraete,
+F. (2016). Unifying time evolution and optimization with matrix product states.
+Physical Review B, 94(16). https://doi.org/10.1103/PhysRevB.94.165116

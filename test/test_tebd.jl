@@ -1,18 +1,6 @@
 using Test, TimeEvoMPS, ITensors
 using TimeEvoMPS: isleftortho, isrightortho
 
-"create a BondOperator for the transverse-field ising model"
-function tfi_bondop(sites,J,h)
-    N = length(sites)
-    H = BondOperator(sites)
-    for b in 1:N-1
-        add!(H,J,"Sz","Sz",b)
-        add!(H,h,"Sx",b)
-    end
-    add!(H,h,"Sx",N)
-    return H
-end
-
 @testset "Basic TEBD tests" begin
     # check that evolving with identity doesn't change the state
     N=10
@@ -41,24 +29,6 @@ end
     psi = productMPS(sites,ones(Int,N))
     tebd!(psi,H,0.01,5.)
     @test maxLinkDim(psi) == 2^5
-end
-
-"get ground state of transverse-field Ising model"
-function TFIgs(sites,h)
-    ampo = AutoMPO()
-    for j=1:length(sites)-1
-        add!(ampo,-1.,"Sz",j,"Sz",j+1)
-        add!(ampo,-h,"Sx",j)
-    end
-    add!(ampo,-h,"Sx",length(sites))
-    H = MPO(ampo,sites)
-
-    psi0 = randomMPS(sites)
-    sweeps = Sweeps(15)
-    maxdim!(sweeps, 10,20,100,100,200)
-    cutoff!(sweeps, 1E-10)
-    energy, psi = dmrg(H,psi0,sweeps,quiet=true)
-    return psi,energy
 end
 
 @testset "Imaginary time-evolution TFI model" begin

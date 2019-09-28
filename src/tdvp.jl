@@ -23,7 +23,7 @@ In addition the following keyword arguments are supported:
 - `hermitian::Bool` (`false`) : whether the MPO `H` represents an Hermitian operator. This will be passed to the
     Krylov exponentiation routine (`KrylovKit.exponentiate`) which will in turn use a Lancosz algorithm in the
     case of an hermitian operator.
-- `exp_tol::Float` (1e-12/dt) : The tolerance per unit-time for `KrylovKit.exponentiate`.
+- `exp_tol::Float` (1e-14/abs(dt/2)) : The error tolerance for `KrylovKit.exponentiate`.
     (note that default value was not optimized yet, so you might want to play around with it)
 - `verbose::Bool` (`false`) : If `true`, print some information after every time-step.
 
@@ -36,7 +36,7 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     nsteps = Int(tf/dt)
     obs = get(kwargs,:observer, NoTEvoObserver())
     hermitian = get(kwargs,:hermitian,false)
-    exp_tol = get(kwargs,:exp_tol, 1e-12/dt)
+    exp_tol = get(kwargs,:exp_tol, 1e-14/abs(dt/2))
     verbose = get(kwargs,:verbose, false)
 
     N = length(psi)

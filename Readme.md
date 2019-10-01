@@ -35,7 +35,7 @@ h = 0.5
 
 # Use ITensors to define initial fully-polarized MPS
 sites = spinHalfSites(N)
-psi = productMPS(sites, fill("↑",10))
+psi = productMPS(sites, fill("↑",N))
 
 # Build Hamiltonian
 H = BondOperator(sites)

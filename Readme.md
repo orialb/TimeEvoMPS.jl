@@ -32,10 +32,12 @@ using ITensors, TimeEvoMPS
 N=10
 J = 1.
 h = 0.5
-sites = spinHalfSites(N)
-psi = productMPS(sites, fill(1,10))
 
-# build Hamiltonian
+# Use ITensors to define initial fully-polarized MPS
+sites = spinHalfSites(N)
+psi = productMPS(sites, fill("↑",N))
+
+# Build Hamiltonian
 H = BondOperator(sites)
 for b in 1:N-1
     #add two-site term at bond b

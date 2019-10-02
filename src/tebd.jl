@@ -60,7 +60,7 @@ function time_evo_gates(dt, H::GateList, alg::TEBD2)
 end
 
 function time_evo_gates(dt,H::GateList,alg::TEBD2Sweep)
-    Us = [exp.(-1im*dt/2 .* H), exp.(-1im*dt/2 .* H[end:-1:1])]
+    Us = [exp.(-1im*dt/2 .* H), exp.(-1im*dt/2 .* H)]
     return [], Us, []
 end
 

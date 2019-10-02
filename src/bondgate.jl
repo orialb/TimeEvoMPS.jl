@@ -50,6 +50,9 @@ function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     replaceBond!(psi, b, wf; kwargs...)
 end
 
+#TODO: need to rethink this function as the dir functionality either
+# has misleading name or is making an assumption about the ordering of
+# the gates in Gs
 function apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...)
     dir = get(kwargs,:dir,"fromleft")
     if dir == "fromleft"
@@ -57,7 +60,7 @@ function apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...)
     elseif dir == "fromright"
         return map(x->apply_gate!(psi,x;kwargs...), @view Gs[end:-1:1])
     else
-        throw("`dir` must be either 'fromleft' or 'fromright' ")
+        throw("`dir` must be \"fromleft\",\"fromright\" ")
     end
 end
 

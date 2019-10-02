@@ -1,5 +1,5 @@
 using Test, TimeEvoMPS, ITensors
-using TimeEvoMPS: isleftortho, isrightortho
+using TimeEvoMPS: isleftortho, isrightortho, measure!
 
 @testset "Basic TEBD tests" begin
     for alg in [TEBD2(), TEBD2Sweep(), TEBD4()]
@@ -58,4 +58,37 @@ end
             @test Es[end] ≈ eexact atol=1e-4
         end
     end
+end
+
+@testset "Compare TEBD2 and TEBD4" begin
+    N=10
+    J,h = 1., 5.87
+    dt, tf = 0.01,2
+    sites= spinHalfSites(N)
+    psi2 = productMPS(sites,ones(Int,N))
+    psi4 = complex!(deepcopy(psi2))
+    H = tfi_bondop(sites,J,h)
+
+    tebd!(psi2,H,dt,tf,cutoff=1e-12)
+    tebd!(psi4,H,dt,tf,TEBD4(),cutoff=1e-12)
+
+    # since error in TEBD2 is O(t*dt²) while
+    # error in TEBD4 is O(t*dt⁴) the most we can
+    # hope for is an agreement up to O(t*dt²)
+    @test inner(psi2,psi4) ≈ 1 atol= dt^2
+
+    #measure magnetizations and make sure they are the same
+    sz2 = measure!(psi2,"Sz")
+    sz4 = measure!(psi4,"Sz")
+    @test maximum(abs.(sz2 - sz4)) < dt^2
+
+    # we can also check that the Trotter error for TEBD4 scales like dt^4
+    # by comparing TEBD4 with step size dt and TEBD2 with step size dt^2
+    # (since N is very small we don't expect truncation errors kicking in here)
+    psi4 = productMPS(sites,ones(Int,N))
+    dt4 = 0.1
+    tebd!(psi4,H,dt4,tf,TEBD4())
+    @test inner(psi2,psi4) ≈ 1 atol=dt^2
+    sz4 = measure!(psi4,"Sz")
+    @test maximum(abs.(sz2 - sz4)) < dt^2
 end

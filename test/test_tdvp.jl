@@ -1,4 +1,5 @@
 using Test, ITensors, TimeEvoMPS
+using TimeEvoMPS: measure!
 
 @testset "Basic TDVP tests" begin
     N=10
@@ -31,14 +32,6 @@ using Test, ITensors, TimeEvoMPS
     E1 = inner(psi,H,psi)
     @test E0 ≈ E1
 end
-
-#TODO: do we want these functions in the package?
-function measure!(psi::MPS,opname::String,i::Int)
-    orthogonalize!(psi,i)
-    return scalar(dag(psi[i])*noprime(op(siteindex(psi,i), opname)*psi[i]))
-end
-
-measure!(psi::MPS,opname::String) = map(x->measure!(psi,opname,x), 1:length(psi))
 
 @testset "compare short-time evolution TDVP and TEBD" begin
     N=10

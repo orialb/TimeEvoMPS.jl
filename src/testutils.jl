@@ -51,3 +51,10 @@ function tfi_bondop(sites,J,h)
     return H
 end
 
+function measure!(psi::MPS,opname::String,i::Int)
+    orthogonalize!(psi,i)
+    return scalar(dag(psi[i])*noprime(op(siteindex(psi,i), opname)*psi[i]))
+end
+
+measure!(psi::MPS,opname::String) = map(x->measure!(psi,opname,x), 1:length(psi))
+

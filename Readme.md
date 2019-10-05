@@ -71,7 +71,7 @@ tebd!(psi,H,dt,tf, maxdim=maxdim)
 ``` 
 
 Alternatively we could use 4th order Trotter decomposition
-```
+```julia
 tebd!(psi,H,dt,tf,TEBD4(), maxdim=maxdim)
 ```
 
@@ -91,9 +91,9 @@ H= MPO(ampo,sites)
 ```
 
 Now we can run time-evolution using TDVP. 
-```
+```julia
 psi = complex!(psi)
-tdvp!(psi,H,dt,tf maxdim=maxdim)
+tdvp!(psi,H,dt,tf,maxdim=maxdim)
 ```
 
 ( Note that currently for real-time evolution the ITensors stored 

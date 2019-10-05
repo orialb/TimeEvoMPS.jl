@@ -1,0 +1,4 @@
+*.o
+*__pycache__/
+/benchmarks/tebd/itensor_tebd/tebd
+/benchmarks/tebd/itensor_tebd/tebd_heis

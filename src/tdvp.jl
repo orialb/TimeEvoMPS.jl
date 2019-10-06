@@ -39,6 +39,7 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     exp_tol = get(kwargs,:exp_tol, 1e-14/abs(dt/2))
     verbose = get(kwargs,:verbose, false)
     krylovdim = get(kwargs,:krylovdim, 30 )
+    maxiter = get(kwargs,:maxiter,100)
 
     N = length(psi)
     orthogonalize!(psi,1)
@@ -63,7 +64,8 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             if 1<i<N && !(dt isa Complex)
                 singlesite!(PH)
                 ITensors.position!(PH,psi,i)
-                psi[i], info = exponentiate(PH,1im*dt/2,psi[i]; ishermitian=hermitian, tol=exp_tol, krylovdim=krylovdim)
+                psi[i], info = exponentiate(PH,1im*dt/2,psi[i]; ishermitian=hermitian, tol=exp_tol, krylovdim=krylovdim,
+                                            maxiter=maxiter)
                 info.converged==0 && throw("exponentiate did not converge")
             elseif i==1 && dt isa Complex
                 psi[i] /= sqrt(real(scalar(dag(psi[i])*psi[i])))

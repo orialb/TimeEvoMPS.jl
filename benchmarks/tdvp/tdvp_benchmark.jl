@@ -12,4 +12,3 @@ function run_tdvp(N,maxdim,tf; kwargs...)
     return maxLinkDim(psi)
 end
 
-@ampo H = J*Sz[i]*Sz[i+1] + Δ*Sx[i] +

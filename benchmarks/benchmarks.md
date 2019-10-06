@@ -12,6 +12,8 @@ not interpret the fact that there are a few seconds difference as one package be
 For the Julia benchmarks, I used Julia 1.2 compiled with MKL. 
 The iTensor (c++) was also compiled with MKL, and TenPy was run with numpy compiled with MKL as well.
 
+I am using MKL_NUM_THREADS=2 for the benchmark.
+
 ```
 Platform Info:
   OS: macOS (x86_64-apple-darwin17.7.0)
@@ -45,4 +47,23 @@ This hints that there might be some differences in the way truncation is done (o
 In general I would expect the c++ code to be a bit faster. 
 
 # TDVP [TODO]
+Here I used `MKL_NUM_THREADS=1`.
 
+Times are per sweep after saturation to maximal bond dimension , `N=20, maxdim=100`. I restricted 
+the maximal krylov dimension to `krylovdim=20` and used `tol=1e-10` (which was the default tolerance setting in the
+ITensor version). Also used `maxiter=10` for the Julia benchmark (which corresponds to a hard-coded value in the 
+ITensor version, as far as I understand). I don't know if those are good defaults but I was just trying to have a fair comparison.
+
+- ITensor (tdvp branch) ~ 14.4
+- TimeEvoMPS ~ 8.7
+
+When using `krylovdim=30`:
+
+- ITensor ~  20.2
+- TimeEvoMPS ~ 13.9
+
+I Also looked at timings for the Krylov exponentiation methods themselves, using a random projected local
+operator acting on a two-legged tensor with both indices having dimension 100, I get 
+
+- ITensor ~ 32.762ms
+- KrylovKit ~ 22.525ms

@@ -1,5 +1,3 @@
-// this code is based on the tdvp sample in the "tdvp" barnch of itensor
-// (modified to run on transverse field Ising model)
 #include "itensor/all.h"
 #include "mylocalop.h"
 
@@ -16,13 +14,15 @@ main()
       B /= norm(B);
       auto M = MyLocalOp(A,B);
       auto v = randomITensor(i,j);
-      auto v1 = v;
 
-
+      // exponentiate multiple times to make sure that the total runtime is completely
+      // dominated by applyExp (I run `time ./exp` and divide by 1000)
       for(int n=1; n<=1000; ++n)
         {
-          auto v = randomITensor(i,j);
-          applyExp(M,v,0.1,{"MaxIter", 30,  "ErrGoal",1E-12});
+          // applyExp updates the vector in-place so we need to
+          // initialize it every time.
+          auto v1 = v;
+          applyExp(M,v1,0.1,{"MaxIter", 30,  "ErrGoal",1E-12});
         }
 
       return 0;

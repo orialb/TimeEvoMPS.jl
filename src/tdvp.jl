@@ -41,6 +41,9 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     krylovdim = get(kwargs,:krylovdim, 30 )
     maxiter = get(kwargs,:maxiter,100)
 
+    τ = 1im*dt
+    imag(τ) == 0 && (τ = real(τ))
+
     N = length(psi)
     orthogonalize!(psi,1)
     PH = ProjMPO(H)
@@ -52,7 +55,7 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             twosite!(PH)
             ITensors.position!(PH,psi,b)
             wf = psi[b]*psi[b+1]
-            wf, info = exponentiate(PH, -1im*dt/2, wf; ishermitian=hermitian , tol=exp_tol, krylovdim=krylovdim)
+            wf, info = exponentiate(PH, -τ/2, wf; ishermitian=hermitian , tol=exp_tol, krylovdim=krylovdim)
             dir = ha==1 ? "fromleft" : "fromright"
             info.converged==0 && throw("exponentiate did not converge")
             replaceBond!(psi,b,wf; dir = dir, kwargs... )
@@ -64,7 +67,7 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             if 1<i<N && !(dt isa Complex)
                 singlesite!(PH)
                 ITensors.position!(PH,psi,i)
-                psi[i], info = exponentiate(PH,1im*dt/2,psi[i]; ishermitian=hermitian, tol=exp_tol, krylovdim=krylovdim,
+                psi[i], info = exponentiate(PH,τ/2,psi[i]; ishermitian=hermitian, tol=exp_tol, krylovdim=krylovdim,
                                             maxiter=maxiter)
                 info.converged==0 && throw("exponentiate did not converge")
             elseif i==1 && dt isa Complex
@@ -76,7 +79,6 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             @printf("Step %d : maxLinkDim= %d, sweep time= %.3f \n", s,maxLinkDim(psi), stime)
         end
         checkdone!(obs) && break
-        # println("step $s, $(inner(psi,psi))")
     end
 
 end

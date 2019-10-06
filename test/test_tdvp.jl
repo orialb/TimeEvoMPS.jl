@@ -68,7 +68,7 @@ end
     h = 0.5
     sites = spinHalfSites(N)
     H = tfi_mpo(J,h,sites)
-    psi = complex!(productMPS(sites,ones(Int,N)))
+    psi = productMPS(sites,ones(Int,N))
 
     Es = []
     nsteps = 100

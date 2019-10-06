@@ -46,13 +46,14 @@ Same as above but with `maxdim=100` and `t=5`:
 This hints that there might be some differences in the way truncation is done (or I am using some parameters wrong) in the two examples. 
 In general I would expect the c++ code to be a bit faster. 
 
-# TDVP [TODO]
+# TDVP 
 Here I used `MKL_NUM_THREADS=1`.
 
 Times are per sweep after saturation to maximal bond dimension , `N=20, maxdim=100`. I restricted 
-the maximal krylov dimension to `krylovdim=20` and used `tol=1e-10` (which was the default tolerance setting in the
-ITensor version). Also used `maxiter=10` for the Julia benchmark (which corresponds to a hard-coded value in the 
-ITensor version, as far as I understand). I don't know if those are good defaults but I was just trying to have a fair comparison.
+the maximal Krylov dimension to `krylovdim=20` and used `tol=1e-10` (which was the default tolerance setting in the
+ITensor version). I don't know if those are good defaults but I was just trying to have a fair comparison.
+After performing the benchmarks I realized that a possible mistake is that maybe the `tol` parameter in `KrylovKit.exponentiate` does
+not have exactly the same meaning as `ErrGoal` in `applyExp` in ITensor, so it might be that after all I did not do a fair comparison.
 
 - ITensor (tdvp branch) ~ 14.4
 - TimeEvoMPS ~ 8.7
@@ -63,7 +64,7 @@ When using `krylovdim=30`:
 - TimeEvoMPS ~ 13.9
 
 I Also looked at timings for the Krylov exponentiation methods themselves, using a random projected local
-operator acting on a two-legged tensor with both indices having dimension 100, I get 
+operator acting on a two-legged tensor with both indices having dimension 100, I get (caveat above still applies)
 
 - ITensor ~ 32.762ms
 - KrylovKit ~ 22.525ms

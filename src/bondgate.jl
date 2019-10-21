@@ -21,7 +21,7 @@ bond(G::BondGate) = G.b
 
 const GateList = Vector{BondGate}
 
-exp(G::BondGate; hermitian=false) = BondGate( exp(G.G, findprimeinds(G.G); hermitian=hermitian), G.b)
+exp(G::BondGate; hermitian=false) = BondGate( exp(G.G, findprimeinds(G.G), findprimeinds(G.G,0); ishermitian=hermitian), G.b)
 
 """
     apply_gate!(psi::MPS,G::BondGate ; kwargs...)

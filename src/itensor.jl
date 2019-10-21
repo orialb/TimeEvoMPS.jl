@@ -3,9 +3,9 @@
 
 function findprimeinds(is::IndexSet, plevel::Int=-1)
     if plevel>=0
-        return IndexSet(filter(x->plev(x)==plevel, is.inds))
+        return IndexSet(filter(x->plev(x)==plevel, is.inds)...)
     else
-        return IndexSet(filter(x->plev(x)>0, is.inds) )
+        return IndexSet(filter(x->plev(x)>0, is.inds)... )
     end
 end
 

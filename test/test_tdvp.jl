@@ -3,7 +3,7 @@ using TimeEvoMPS: measure!
 
 @testset "Basic TDVP tests" begin
     N=10
-    sites= spinHalfSites(N)
+    sites= siteinds("S=1/2",N)
 
     #check that evolving forward and backward in time brings us back to the same state
     #(up to numerical errors of course)
@@ -37,7 +37,7 @@ end
     N=10
     J,h = 1., 5.87
     dt, tf = 0.01,0.5
-    sites= spinHalfSites(N)
+    sites= siteinds("S=1/2",N)
     psi_tebd = productMPS(sites,ones(Int,N))
     psi_tdvp = complex!(deepcopy(psi_tebd))
 
@@ -66,7 +66,7 @@ end
     N=10
     J = 1.
     h = 0.5
-    sites = spinHalfSites(N)
+    sites = siteinds("S=1/2",N)
     H = tfi_mpo(J,h,sites)
     psi = productMPS(sites,ones(Int,N))
 
@@ -82,4 +82,5 @@ end
     eexact = 0.25 -0.25/sin(π/(4*N + 2))
     @test Es[end] ≈ eexact atol=1e-4
 end
+
 

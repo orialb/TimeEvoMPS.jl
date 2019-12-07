@@ -3,7 +3,7 @@ const te = TimeEvoMPS
 
 @testset "NoTEvoObserver" begin
     obs = NoTEvoObserver()
-    sites = spinHalfSites(10)
+    sites = siteinds("S=1/2",10)
     psi = randomMPS(sites)
     @test te.observe!(obs,psi) == nothing
     @test te.checkdone!(obs,psi) == false

@@ -6,7 +6,7 @@ using TimeEvoMPS: isleftortho, isrightortho, measure!
         @testset "$alg" begin
             # check that evolving with identity doesn't change the state
             N=10
-            sites = spinHalfSites(N)
+            sites = siteinds("S=1/2",N)
             trivialH = BondOperator(sites)
             psi0 = randomMPS(sites)
             orthogonalize!(psi0,1)
@@ -30,7 +30,7 @@ using TimeEvoMPS: isleftortho, isrightortho, measure!
             #check that bond dimension is growing to maximum during evolution
             psi = productMPS(sites,ones(Int,N))
             tebd!(psi,H,0.01,5.,alg)
-            @test maxLinkDim(psi) == 2^5
+            @test maxlinkdim(psi) == 2^5
         end
     end
 end
@@ -39,7 +39,7 @@ end
     N=10
     J = 1.
     h = 0.5
-    sites = spinHalfSites(N)
+    sites = siteinds("S=1/2",N)
     for alg in [TEBD2(), TEBD2Sweep(), TEBD4()]
         @testset "$alg" begin
             psi = productMPS(sites,ones(Int,N))
@@ -64,7 +64,7 @@ end
     N=10
     J,h = 1., 5.87
     dt, tf = 0.01,2
-    sites= spinHalfSites(N)
+    sites= siteinds("S=1/2",N)
     psi2 = productMPS(sites,ones(Int,N))
     psi4 = complex!(deepcopy(psi2))
     H = tfi_bondop(sites,J,h)

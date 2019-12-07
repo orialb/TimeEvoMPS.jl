@@ -58,7 +58,7 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             wf, info = exponentiate(PH, -τ/2, wf; ishermitian=hermitian , tol=exp_tol, krylovdim=krylovdim)
             dir = ha==1 ? "fromleft" : "fromright"
             info.converged==0 && throw("exponentiate did not converge")
-            replaceBond!(psi,b,wf; dir = dir, kwargs... )
+            replacebond!(psi,b,wf; dir = dir, kwargs... )
 
             # evolve with single-site Hamiltonian backward in time.
             # In the case of imaginary time-evolution this step
@@ -76,9 +76,8 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
         end
         end
         if verbose
-            @printf("Step %d : maxLinkDim= %d, sweep time= %.3f \n", s,maxLinkDim(psi), stime)
+            @printf("Step %d : maxlinkdim= %d, sweep time= %.3f \n", s,maxlinkdim(psi), stime)
         end
         checkdone!(obs) && break
     end
-
 end

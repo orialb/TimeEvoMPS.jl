@@ -35,7 +35,7 @@ J = 1.
 h = 0.5
 
 # Use ITensors to define initial fully-polarized MPS
-sites = spinHalfSites(N)
+sites = siteinds("S=1/2",N)
 psi = productMPS(sites, fill("↑",N))
 ```
 

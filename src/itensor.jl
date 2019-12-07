@@ -26,8 +26,8 @@ function isrightortho(M,i)
 end
 
 function reorthogonalize!(psi::MPS)
-    ITensors.setLeftLim!(psi,-1)
-    ITensors.setRightLim!(psi,length(psi)+2)
+    ITensors.set_leftlim!(psi,-1)
+    ITensors.set_rightlim!(psi,length(psi)+2)
     orthogonalize!(psi,1)
     psi[1] /= sqrt(inner(psi,psi))
 end

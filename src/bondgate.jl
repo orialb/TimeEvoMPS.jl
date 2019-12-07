@@ -29,7 +29,7 @@ Apply a two-site bond gate `G` to the MPS `psi` and update the
 MPS tensors `psi[b],psi[b+1]` (with `b` the bond on which `G` acts).
 
 # Keyword arguments:
-All keyword accepted by `ITensors.replaceBond!`.
+All keyword accepted by `ITensors.replacebond!`.
 The important ones are:
 - `dir::String`: Options are ["fromleft", "fromright","center"].
     If "fromleft" orthogonality center will be at `b+1` after update, if "fromright"
@@ -47,7 +47,7 @@ function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     orthogonalize!(psi,b)
     wf = psi[b]*psi[b+1]
     wf = noprime( G*(psi[b]*psi[b+1]) )
-    replaceBond!(psi, b, wf; kwargs...)
+    replacebond!(psi, b, wf; kwargs...)
 end
 
 #TODO: need to rethink this function as the dir functionality either

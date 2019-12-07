@@ -3,7 +3,7 @@ const te = TimeEvoMPS
 
 
 @testset "SiteTerm and BondTerm" begin
-    sites = spinHalfSites(10)
+    sites = siteinds("S=1/2",10)
     st = SiteTerm(1,1,"Sx*Sx")
     @test op(sites,st)*4 == op(sites,"Id",1)
     st = SiteTerm(1,4,"Sx*Sz*Sx")
@@ -21,7 +21,7 @@ function TFIsingBondGate(sites, b, J,h)
 end
 
 @testset "bond operator" begin
-    sites = spinHalfSites(10)
+    sites = siteinds("S=1/2",10)
     H = BondOperator(sites)
 
     add!(H,1im,"Sx",1)

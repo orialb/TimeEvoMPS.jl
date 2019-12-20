@@ -31,6 +31,16 @@ using TimeEvoMPS: measure!
     tdvp!(psi,H,dt,nsteps*dt)
     E1 = inner(psi,H,psi)
     @test E0 ≈ E1
+
+    #check that the state stays normalized with truncation
+    N = 20
+    sites = siteinds("S=1/2",N)
+    H = tfi_mpo(J,h,sites)
+    psi = productMPS(sites, fill("↑",N))
+    tdvp!(psi,H,1,10,maxdim=5)
+
+    @test isapprox(inner(psi,psi), 1., atol=1e-10)
+
 end
 
 @testset "compare short-time evolution TDVP and TEBD" begin

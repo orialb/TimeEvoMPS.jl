@@ -40,6 +40,7 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     verbose = get(kwargs,:verbose, false)
     krylovdim = get(kwargs,:krylovdim, 30 )
     maxiter = get(kwargs,:maxiter,100)
+    normalize = get(kwargs,:normalize,true)
 
     τ = 1im*dt
     imag(τ) == 0 && (τ = real(τ))
@@ -58,7 +59,8 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             wf, info = exponentiate(PH, -τ/2, wf; ishermitian=hermitian , tol=exp_tol, krylovdim=krylovdim)
             dir = ha==1 ? "fromleft" : "fromright"
             info.converged==0 && throw("exponentiate did not converge")
-            replacebond!(psi,b,wf; dir = dir, kwargs... )
+            spec = replacebond!(psi,b,wf; dir = dir, kwargs... )
+            normalize && ( psi[dir=="fromleft" ? b+1 : b] /= sqrt(sum(eigs(spec))) )
 
             # evolve with single-site Hamiltonian backward in time.
             # In the case of imaginary time-evolution this step
@@ -71,6 +73,7 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
                                             maxiter=maxiter)
                 info.converged==0 && throw("exponentiate did not converge")
             elseif i==1 && dt isa Complex
+                # TODO not sure if this is necessary anymore
                 psi[i] /= sqrt(real(scalar(dag(psi[i])*psi[i])))
             end
         end

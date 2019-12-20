@@ -42,12 +42,19 @@ The important ones are:
     smaller than `cutoff` (but bond dimension will be kept smaller than `maxdim`).
 - `absoluteCutoff::Bool`: If `true` truncate all singular-values whose square is smaller than `cutoff`.
 """
-function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
+function apply_gate!(psi::MPS,G::BondGate ; dir::String, kwargs...)
     b = bond(G)
     orthogonalize!(psi,b)
     wf = psi[b]*psi[b+1]
     wf = noprime( G*(psi[b]*psi[b+1]) )
-    replacebond!(psi, b, wf; kwargs...)
+    spec = replacebond!(psi, b, wf; kwargs...)
+    if get(kwargs,:normalize,true)
+        if dir=="fromleft"
+            psi[b+1] /= sqrt(sum(eigs(spec)))
+        elseif dir=="fromright"
+            psi[b] /= sqrt(sum(eigs(spec)))
+        end
+    end
 end
 
 #TODO: need to rethink this function as the dir functionality either

@@ -31,8 +31,19 @@ using TimeEvoMPS: isleftortho, isrightortho, measure!
             psi = productMPS(sites,ones(Int,N))
             tebd!(psi,H,0.01,5.,alg)
             @test maxlinkdim(psi) == 2^5
+
         end
     end
+
+    #check that the state stays normalized with truncation
+    N = 20
+    sites = siteinds("S=1/2",N)
+    H = tfi_bondop(sites,J,h)
+    psi = productMPS(sites, fill("↑",N))
+    tebd!(psi,H,0.1,20,TEBD2(),maxdim=5)
+
+    @test isapprox(inner(psi,psi), 1., atol=1e-10)
+
 end
 
 @testset "Imaginary time-evolution TFI model" begin

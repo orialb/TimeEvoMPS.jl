@@ -37,6 +37,7 @@ using TimeEvoMPS: isleftortho, isrightortho, measure!
 
     #check that the state stays normalized with truncation
     N = 20
+    J,h = 0.3, -0.7
     sites = siteinds("S=1/2",N)
     H = tfi_bondop(sites,J,h)
     psi = productMPS(sites, fill("↑",N))

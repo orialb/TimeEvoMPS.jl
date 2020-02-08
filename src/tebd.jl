@@ -95,7 +95,14 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     orthogonalize_step = get(kwargs,:orthogonalize,0)
 
     #We can bunch together half-time steps, when we don't need to measure observables
-    nbunch =  measurement_step(obs) >0 ? gcd(measurement_step(obs),nsteps) : nsteps
+    dtm = measurement_dt(obs)
+    if dtm > 0
+        floor(dtm / dt) != dtm /dt && throw("Measurement time step $dtm incommensurate with time-evolution time step $dt")
+        mstep = floor(dtm / dt)
+        nbunch = gcd(mstep,nsteps)
+    else
+        nbunch = nsteps
+    end
     orthogonalize_step > 0 && (nbunch = gcd(nbunch,orthogonalize_step))
 
     Ustart, Us, Uend = time_evo_gates(dt,H,alg)
@@ -117,7 +124,7 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
                 dir = switchdir(dir)
             end
             step += 1
-            observe!(obs,psi)
+            observe!(obs,psi,t=step*dt)
             checkdone!(obs,psi) && break
         end
 
@@ -129,7 +136,7 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
 
         length(Uend)>0 && (step += 1)
         (orthogonalize_step>0 && step % orthogonalize_step ==0) && reorthogonalize!(psi)
-        observe!(obs,psi)
+        observe!(obs,psi, t=step*dt)
         checkdone!(obs,psi) && break
     end
     return psi

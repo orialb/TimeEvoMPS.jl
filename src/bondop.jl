@@ -43,11 +43,11 @@ rightop(sites,bop::BondTerm) = op(sites,bop.rightop)
 A representation of a generic operator which is composed of a sum of one- and two- site terms
 """
 struct BondOperator
-    sites::Vector{Index}
+    sites::Vector{<: Index}
     bondterms::Dict{Int,Vector{BondTerm}}
     siteterms::Dict{Int,Vector{SiteTerm}}
 
-    BondOperator(sites::Vector{Index}) =
+    BondOperator(sites::Vector{<: Index}) =
         new(sites, Dict(b=> Vector{BondTerm}() for b in 1:length(sites)-1),
             Dict(i => Vector{SiteTerm}() for i in 1:length(sites)))
 end

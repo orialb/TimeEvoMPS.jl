@@ -10,8 +10,8 @@ using TimeEvoMPS: measure!
     J,h = 1., 0.5
     H = tfi_mpo(J,h,sites)
 
-    psi0 = randomMPS(sites)
-    psi = complex!(deepcopy(psi0))
+    psi0 = randomMPS(ComplexF64,sites)
+    psi = deepcopy(psi0)
     nsteps = 20
     dt = 1e-1
     tdvp!(psi,H,dt,nsteps*dt, hermitian=true,exp_tol=1e-12/dt,cutoff=1e-14)
@@ -22,13 +22,13 @@ using TimeEvoMPS: measure!
 
     #check that energy is approximately conserved up to time-step error
     #for short time evolution with no truncation
-    psi0 = randomMPS(sites)
-    psi = complex!(deepcopy(psi0))
+    psi = randomMPS(ComplexF64,sites)
+
     nsteps = 20
     dt = 1e-1
     E0 = inner(psi,H,psi)
 
-    tdvp!(psi,H,dt,nsteps*dt)
+    tdvp!(psi,H,dt,nsteps*dt, hermitian=true)
     E1 = inner(psi,H,psi)
     @test E0 ≈ E1
 
@@ -36,8 +36,8 @@ using TimeEvoMPS: measure!
     N = 20
     sites = siteinds("S=1/2",N)
     H = tfi_mpo(J,h,sites)
-    psi = productMPS(sites, fill("↑",N))
-    tdvp!(psi,H,1,10,maxdim=5)
+    psi = productMPS(ComplexF64,sites, fill("↑",N))
+    tdvp!(psi,H,1,10,maxdim=5,hermitian=true)
 
     @test isapprox(inner(psi,psi), 1., atol=1e-10)
 
@@ -52,10 +52,10 @@ end
     psi_tdvp = complex!(deepcopy(psi_tebd))
 
     H = tfi_mpo(J,h,sites)
-    tdvp!(psi_tdvp,H,dt,tf, cutoff=1e-12)
+    tdvp!(psi_tdvp,H,dt,tf, cutoff=1e-12, hermitian=true)
 
     H = tfi_bondop(sites,J,h)
-    tebd!(psi_tebd,H,dt,tf,cutoff=1e-12)
+    tebd!(psi_tebd,H,dt,tf,cutoff=1e-12,hermitian=true)
 
     # problem is that the error in TDVP scales as
     # Δt^4 while in TEBD2 it scales as Δt^2

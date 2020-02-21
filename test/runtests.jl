@@ -5,6 +5,8 @@ tests =["test_bondop.jl",
         "test_observer.jl",
         "test_tdvp.jl"]
 
-@testset "$filename" for filename in tests
-    include(filename)
+@testset "TimeEvoMPS" begin
+    @testset "$filename" for filename in tests
+        include(filename)
+    end
 end

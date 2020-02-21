@@ -7,5 +7,5 @@ const te = TimeEvoMPS
     psi = randomMPS(sites)
     @test te.observe!(obs,psi) == nothing
     @test te.checkdone!(obs,psi) == false
-    @test te.measurement_step(obs) == 0
+    @test te.measurement_dt(obs) == 0
 end

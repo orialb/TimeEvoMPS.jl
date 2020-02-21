@@ -7,6 +7,7 @@ tests =["test_bondop.jl",
 
 @testset "TimeEvoMPS" begin
     @testset "$filename" for filename in tests
+        println("Running $filename")
         include(filename)
     end
 end

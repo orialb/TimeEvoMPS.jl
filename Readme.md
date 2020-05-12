@@ -5,7 +5,7 @@
 The goal of this package is to provide implementations of time-evolution algorithms for matrix-product states using 
 [ITensors.jl](https://github.com/ITensor/ITensors.jl). 
 
-**Note:** This package was not tested against the latest version of ITensors.jl in a while. Since ITensors.jl is still changing fast this means that there might be some small fixes needed in order to get this package working smoothly. I plan to get to it soon when time permits, in the meantime PRs or issues are welcome.
+**Note:** This package was not tested against the latest version of ITensors.jl in a while. Since ITensors.jl API is still changing this means that there might be some small fixes needed in order to get this package working smoothly. I plan to get to it soon when time permits, in the meantime PRs or issues are welcome.
 
 The package is currently at an initial stage. Contributions and suggestions are very welcome. 
 

@@ -57,10 +57,10 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             ITensors.position!(PH,psi,b)
             wf = psi[b]*psi[b+1]
             wf, info = exponentiate(PH, -τ/2, wf; ishermitian=hermitian , tol=exp_tol, krylovdim=krylovdim)
-            dir = ha==1 ? "fromleft" : "fromright"
+            dir = ha==1 ? "left" : "right"
             info.converged==0 && throw("exponentiate did not converge")
-            spec = replacebond!(psi,b,wf; dir = dir, kwargs... )
-            normalize && ( psi[dir=="fromleft" ? b+1 : b] /= sqrt(sum(eigs(spec))) )
+            spec = replacebond!(psi,b,wf; ortho = dir, kwargs... )
+            normalize && ( psi[dir=="left" ? b+1 : b] /= sqrt(sum(eigs(spec))) )
 
             # evolve with single-site Hamiltonian backward in time.
             # In the case of imaginary time-evolution this step

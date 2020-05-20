@@ -3,9 +3,9 @@
 
 function findprimeinds(is::IndexSet, plevel::Int=-1)
     if plevel>=0
-        return IndexSet(filter(x->plev(x)==plevel, is.inds)...)
+        return filter(x->plev(x)==plevel, is)
     else
-        return IndexSet(filter(x->plev(x)>0, is.inds)... )
+        return filter(x->plev(x)>0, is)
     end
 end
 
@@ -26,8 +26,8 @@ function isrightortho(M,i)
 end
 
 function reorthogonalize!(psi::MPS)
-    ITensors.set_leftlim!(psi,-1)
-    ITensors.set_rightlim!(psi,length(psi)+2)
+    ITensors.setleftlim!(psi,-1)
+    ITensors.setrightlim!(psi,length(psi)+2)
     orthogonalize!(psi,1)
     psi[1] /= sqrt(inner(psi,psi))
 end

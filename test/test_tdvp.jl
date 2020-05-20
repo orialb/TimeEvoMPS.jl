@@ -10,7 +10,7 @@ using TimeEvoMPS: measure!
     J,h = 1., 0.5
     H = tfi_mpo(J,h,sites)
 
-    psi0 = randomMPS(ComplexF64,sites)
+    psi0 = productMPS(ComplexF64,sites, [rand()>0.5 ? "↑" : "↓" for i in 1:length(sites)])
     psi = deepcopy(psi0)
     nsteps = 20
     dt = 1e-1
@@ -22,7 +22,7 @@ using TimeEvoMPS: measure!
 
     #check that energy is approximately conserved up to time-step error
     #for short time evolution with no truncation
-    psi = randomMPS(ComplexF64,sites)
+    psi0 = productMPS(ComplexF64,sites, [rand()>0.5 ? "↑" : "↓" for i in 1:length(sites)])
 
     nsteps = 20
     dt = 1e-1

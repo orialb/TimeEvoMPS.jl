@@ -97,8 +97,8 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     #We can bunch together half-time steps, when we don't need to measure observables
     dtm = callback_dt(cb)
     if dtm > 0
-        floor(dtm / dt) != dtm /dt && throw("Measurement time step $dtm incommensurate with time-evolution time step $dt")
-        mstep = floor(dtm / dt)
+        floor(Int64, dtm / dt) != dtm /dt && throw("Measurement time step $dtm incommensurate with time-evolution time step $dt")
+        mstep = floor(Int64,dtm / dt)
         nbunch = gcd(mstep,nsteps)
     else
         nbunch = nsteps
@@ -125,7 +125,7 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
             end
             step += 1
             # TODO: should application of callback be allowed here?
-            # apply!(cb,psi,t=step*dt)
+            apply!(cb,psi,t=step*dt, bond=1,sweepend=true)
             checkdone!(cb,psi) && break
         end
 
@@ -138,7 +138,7 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
         length(Uend)>0 && (step += 1)
         # TODO: make this a callback
         (orthogonalize_step>0 && step % orthogonalize_step ==0) && reorthogonalize!(psi)
-        apply!(cb,psi, t=step*dt)
+        apply!(cb,psi, t=step*dt, bond=1, sweepend=true)
         checkdone!(cb,psi) && break
     end
     return psi

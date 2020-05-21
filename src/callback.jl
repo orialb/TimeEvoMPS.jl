@@ -26,7 +26,7 @@ end
 
 const Measurement = Vector{Vector{Float64}}
 
-struct MeasurementCallback <: TEvoCallback
+struct LocalMeasurementCallback <: TEvoCallback
     ops::Vector{String}
     sites::Vector{<: Index}
     measurements::Dict{String, Measurement}
@@ -34,11 +34,21 @@ struct MeasurementCallback <: TEvoCallback
     dt_measure::Float64
 end
 
-measurement_ts(cb::MeasurementCallback) = o.ts
-measurements(cb::MeasurementCallback) = o.measurements
-callback_dt(cb::MeasurementCallback) = o.dt_measure
+function LocalMeasurementCallback(ops,sites,dt_measure)
+    return LocalMeasurementCallback(ops,
+                                    sites,
+                                    Dict(o => Measurement[] for o in ops),
+                                    Vector{Float64}(),
+                                    dt_measure)
+end
 
-function measure_localops!(cb::MeasurementCallback,
+measurement_ts(cb::LocalMeasurementCallback) = cb.ts
+measurements(cb::LocalMeasurementCallback) = cb.measurements
+callback_dt(cb::LocalMeasurementCallback) = cb.dt_measure
+ops(cb::LocalMeasurementCallback) = cb.ops
+sites(cb::LocalMeasurementCallback) = cb.sites
+
+function measure_localops!(cb::LocalMeasurementCallback,
                           wf::ITensor,
                           i::Int)
     for o in ops(cb)
@@ -48,8 +58,16 @@ function measure_localops!(cb::MeasurementCallback,
     end
 end
 
-function apply!(cb::MeasurementCallback, psi; t, kwargs...)
-    if t-measurement_ts(o)[end]==callback_dt(o)
+function apply!(cb::LocalMeasurementCallback, psi; t, sweepend, bond, kwargs...)
+    # perform measurements only at the end of a sweep and at measurement steps
+    prev_t = length(measurement_ts(cb))>0 ? measurement_ts(cb)[end] : 0
+    if t-prev_t==callback_dt(cb) && bond==1 && sweepend
+        foreach(x->push!(x,zeros(length(psi))), values(measurements(cb)) )
+        for i in length(psi):-1:1
+            orthogonalize!(psi,i)
+            measure_localops!(cb,psi[i],i)
+        end
+        push!(measurement_ts(cb),t)
     end
 end
 

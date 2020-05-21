@@ -42,4 +42,16 @@ end
     m = scalar(dag(psi[1])*noprime(op(sites, "Sz", 1)*psi[1]))
     @test te.measurements(cb)["Sz"][end][1] ≈ m
 
+
+    H = tfi_mpo(1.0,1.0,sites)
+    psi = productMPS(sites, fill("↑",N))
+    cb = te.LocalMeasurementCallback(["Sz","Sx"], sites,0.5)
+    tdvp!(psi,H,0.1,5,maxdim=5,hermitian=true,callback=cb)
+
+    @test length(te.measurement_ts(cb))==length(0.5:0.5:5)
+    m = scalar(dag(psi[1])*noprime(op(sites, "Sz", 1)*psi[1]))
+    @test te.measurements(cb)["Sz"][end][1] ≈ m
+
+
+
 end

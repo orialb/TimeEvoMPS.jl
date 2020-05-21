@@ -34,7 +34,7 @@ https://doi.org/10.1103/PhysRevB.94.165116
 """
 function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     nsteps = Int(tf/dt)
-    obs = get(kwargs,:observer, NoTEvoObserver())
+    cb = get(kwargs,:callback, NoTEvoCallback())
     hermitian = get(kwargs,:hermitian,false)
     exp_tol = get(kwargs,:exp_tol, 1e-14)
     verbose = get(kwargs,:verbose, false)
@@ -76,11 +76,13 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
                 # TODO not sure if this is necessary anymore
                 psi[i] /= sqrt(real(scalar(dag(psi[i])*psi[i])))
             end
+
+            apply!(cb,psi; t=s*dt, bond=b, sweepend= ha==2, sweepdir= ha==1 ? "right" : "left",spec=spec)
         end
         end
         if verbose
             @printf("Step %d : maxlinkdim= %d, sweep time= %.3f \n", s,maxlinkdim(psi), stime)
         end
-        checkdone!(obs) && break
+        checkdone!(cb) && break
     end
 end

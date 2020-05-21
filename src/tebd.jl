@@ -91,11 +91,11 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     # one option would be to use round(tf/dt) and verify that abs(round(tf/dt)-tf/dt)
     # is smaller than some threshold. Another option would be to use big(Rational(dt)).
     nsteps = Int(tf/dt)
-    obs = get(kwargs,:observer, NoTEvoObserver())
+    cb = get(kwargs,:callback, NoTEvoCallback())
     orthogonalize_step = get(kwargs,:orthogonalize,0)
 
     #We can bunch together half-time steps, when we don't need to measure observables
-    dtm = measurement_dt(obs)
+    dtm = callback_dt(cb)
     if dtm > 0
         floor(dtm / dt) != dtm /dt && throw("Measurement time step $dtm incommensurate with time-evolution time step $dt")
         mstep = floor(dtm / dt)
@@ -124,8 +124,9 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
                 dir = switchdir(dir)
             end
             step += 1
-            observe!(obs,psi,t=step*dt)
-            checkdone!(obs,psi) && break
+            # TODO: should application of callback be allowed here?
+            # apply!(cb,psi,t=step*dt)
+            checkdone!(cb,psi) && break
         end
 
         #finalize the last time step from the bunched steps
@@ -135,9 +136,10 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
         end
 
         length(Uend)>0 && (step += 1)
+        # TODO: make this a callback
         (orthogonalize_step>0 && step % orthogonalize_step ==0) && reorthogonalize!(psi)
-        observe!(obs,psi, t=step*dt)
-        checkdone!(obs,psi) && break
+        apply!(cb,psi, t=step*dt)
+        checkdone!(cb,psi) && break
     end
     return psi
 end

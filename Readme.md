@@ -13,12 +13,11 @@ Algorithms currently implemented:
 
 
 ## Installation
-Since ITensors.jl is not yet a registered package you will have to make sure it is installed before installing TimeEvoMPS.jl.
-In the Julia REPL:
+In order to use this package you will need to have ITensors.jl installed, run the following in the Julia REPL:
 ```
-] add https://github.com/ITensor/ITensors.jl 
+] add ITensors
 ```
-After you have installed ITensors.jl you can go ahead and install TimeEvoMPS:
+This package is not yet registered, in order to install it run the following in the Julia REPL:
 ```
 ] add https://github.com/orialb/TimeEvoMPS.jl
 ```

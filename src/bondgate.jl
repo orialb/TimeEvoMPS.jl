@@ -51,9 +51,6 @@ function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     return spec
 end
 
-#TODO: need to rethink this function as the dir functionality either
-# has misleading name or is making an assumption about the ordering of
-# the gates in Gs
 function apply_gates!(psi::MPS, Gs::Vector{BondGate}; kwargs...)
     rev = get(kwargs,:reversed,false)
     cb_func = get(kwargs,:cb, nothing)

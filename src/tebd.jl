@@ -92,6 +92,13 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     # is smaller than some threshold. Another option would be to use big(Rational(dt)).
     nsteps = Int(tf/dt)
     cb = get(kwargs,:callback, NoTEvoCallback())
+    cb_func(dt,step,rev,se) = (psi; bond, spec) -> apply!(cb,psi;
+                                                              t=dt*step,
+                                                              bond=bond,
+                                                              spec=spec,
+                                                              sweepdir=rev ? "left" : "right",
+                                                              sweepend= se,
+                                                              alg = alg)
     orthogonalize_step = get(kwargs,:orthogonalize,0)
 
     #We can bunch together half-time steps, when we don't need to measure observables
@@ -120,24 +127,23 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
 
         for i in 1:nbunch-1
             for U in Us
-                apply_gates!(psi,U; reversed=rev, kwargs...)
+                apply_gates!(psi,U; reversed=rev,
+                             cb=cb_func(dt,step,rev,false), kwargs...)
                 rev = !rev
             end
             step += 1
-            # TODO: should application of callback be allowed here?
             checkdone!(cb,psi) && break
         end
 
         #finalize the last time step from the bunched steps
-        for U in Uend
-            apply_gates!(psi,U; reversed = rev, kwargs...)
+        for (i,U) in enumerate(Uend)
+            apply_gates!(psi,U; reversed = rev, cb=cb_func(dt,step+1,rev,i==length(Uend)), kwargs...)
             rev = !rev
         end
 
         length(Uend)>0 && (step += 1)
         # TODO: make this a callback
         (orthogonalize_step>0 && step % orthogonalize_step ==0) && reorthogonalize!(psi)
-        apply!(cb,psi, t=step*dt, bond=1, sweepend=true)
         checkdone!(cb,psi) && break
     end
     return psi

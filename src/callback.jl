@@ -68,16 +68,23 @@ function measure_localops!(cb::LocalMeasurementCallback,
     end
 end
 
-function apply!(cb::LocalMeasurementCallback, psi; t, sweepend, sweepdir, bond, kwargs...)
+function apply!(cb::LocalMeasurementCallback, psi; t, sweepend, sweepdir, bond, alg, kwargs...)
     # perform measurements only at the end of a sweep and at measurement steps
     prev_t = length(measurement_ts(cb))>0 ? measurement_ts(cb)[end] : 0
-    if (t-prev_t==callback_dt(cb) || t==prev_t) && sweepend && sweepdir == "left"
+    if (t-prev_t==callback_dt(cb) || t==prev_t) && sweepend
         if t != prev_t
             push!(measurement_ts(cb), t)
             foreach(x->push!(x,zeros(length(psi))), values(measurements(cb)) )
         end
-        measure_localops!(cb,psi[bond]*psi[bond+1],bond+1)
-        bond==1 && measure_localops!(cb,psi[bond]*psi[bond+1],bond)
+        wf = psi[bond]*psi[bond+1]
+        @debug "bond= $bond, llim=$(psi.llim), rlim= $(psi.rlim)"
+        @debug "$(dot(wf,wf))"
+        measure_localops!(cb,wf,bond+1)
+        if alg isa TEBDalg
+            measure_localops!(cb,wf,bond)
+        elseif bond==1
+            measure_localops!(cb,wf,bond)
+        end
     end
 end
 

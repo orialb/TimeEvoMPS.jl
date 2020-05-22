@@ -4,6 +4,8 @@ using ITensors: position!
 singlesite!(PH::ProjMPO) = (PH.nsite = 1)
 twosite!(PH::ProjMPO) = (PH.nsite = 2)
 
+struct TDVP2 end
+
 """
     tdvp!(psi,H::MPO,dt,tf; kwargs...)
 Evolve the MPS `psi` up to time `tf` using the two-site time-dependent variational
@@ -59,8 +61,8 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             wf, info = exponentiate(PH, -τ/2, wf; ishermitian=hermitian , tol=exp_tol, krylovdim=krylovdim)
             dir = ha==1 ? "left" : "right"
             info.converged==0 && throw("exponentiate did not converge")
-            spec = replacebond!(psi,b,wf; ortho = dir, kwargs... )
-            normalize && ( psi[dir=="left" ? b+1 : b] /= sqrt(sum(eigs(spec))) )
+            spec = replacebond!(psi,b,wf;normalize=normalize, ortho = dir, kwargs... )
+            # normalize && ( psi[dir=="left" ? b+1 : b] /= sqrt(sum(eigs(spec))) )
 
             # evolve with single-site Hamiltonian backward in time.
             # In the case of imaginary time-evolution this step
@@ -77,7 +79,12 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
                 psi[i] /= sqrt(real(scalar(dag(psi[i])*psi[i])))
             end
 
-            apply!(cb,psi; t=s*dt, bond=b, sweepend= ha==2, sweepdir= ha==1 ? "right" : "left",spec=spec)
+            apply!(cb,psi; t=s*dt,
+                   bond=b,
+                   sweepend= ha==2,
+                   sweepdir= ha==1 ? "right" : "left",
+                   spec=spec,
+                   alg=TDVP2())
         end
         end
         if verbose

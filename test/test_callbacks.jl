@@ -39,19 +39,24 @@ end
     tebd!(psi,H,0.1,5,TEBD2(),maxdim=5,callback=cb)
 
     @test length(te.measurement_ts(cb))==length(0.5:0.5:5)
-    m = scalar(dag(psi[1])*noprime(op(sites, "Sz", 1)*psi[1]))
-    @test te.measurements(cb)["Sz"][end][1] ≈ m
-
+    for i in 1:length(psi)
+        orthogonalize!(psi,i)
+        m = scalar(dag(psi[i])*noprime(op(sites, "Sz", i)*psi[i]))
+        @test te.measurements(cb)["Sz"][end][i] ≈ m
+    end
 
     H = tfi_mpo(1.0,1.0,sites)
     psi = productMPS(sites, fill("↑",N))
-    cb = te.LocalMeasurementCallback(["Sz","Sx"], sites,0.5)
-    tdvp!(psi,H,0.1,5,maxdim=5,hermitian=true,callback=cb)
+    cb2 = te.LocalMeasurementCallback(["Sz","Sx"], sites,0.5)
+    tdvp!(psi,H,0.1,5,maxdim=5,hermitian=true,callback=cb2)
 
-    @test length(te.measurement_ts(cb))==length(0.5:0.5:5)
-    m = scalar(dag(psi[1])*noprime(op(sites, "Sz", 1)*psi[1]))
-    @test te.measurements(cb)["Sz"][end][1] ≈ m
-
-
+    @test length(te.measurement_ts(cb2))==length(0.5:0.5:5)
+    for i in 1:length(psi)
+        orthogonalize!(psi,i)
+        m = scalar(dag(psi[i])*noprime(op(sites, "Sz", i)*psi[i]))
+        @test te.measurements(cb2)["Sz"][end][i] ≈ m
+    end
 
 end
+
+

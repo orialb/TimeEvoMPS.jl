@@ -48,6 +48,16 @@ callback_dt(cb::LocalMeasurementCallback) = cb.dt_measure
 ops(cb::LocalMeasurementCallback) = cb.ops
 sites(cb::LocalMeasurementCallback) = cb.sites
 
+function Base.show(io::IO, cb::LocalMeasurementCallback)
+    println(io, "LocalMeasurementCallback")
+    println(io, "Operators: ", ops(cb))
+    if length(measurement_ts(cb))>0
+        println(io, "Measured times: ", callback_dt(cb):callback_dt(cb):measurement_ts(cb)[end])
+    else
+        println(io, "No measurements performed")
+    end
+end
+
 function measure_localops!(cb::LocalMeasurementCallback,
                           wf::ITensor,
                           i::Int)

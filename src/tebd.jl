@@ -110,29 +110,28 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     length(Ustart)==0 && length(Uend)==0 && (nbunch+=1)
 
     step = 0
-    switchdir(dir) =dir== "fromleft" ? "fromright" : "fromleft"
-    dir = "fromleft"
+    switchdir(rev) = !(rev)
+    rev = false
     while step < nsteps
         for U in Ustart
-            apply_gates!(psi, U ; dir = dir, kwargs...)
-            dir = switchdir(dir)
+            apply_gates!(psi, U ; reversed = rev, kwargs...)
+            rev = !rev
         end
 
         for i in 1:nbunch-1
             for U in Us
-                apply_gates!(psi,U; dir=dir, kwargs...)
-                dir = switchdir(dir)
+                apply_gates!(psi,U; reversed=rev, kwargs...)
+                rev = !rev
             end
             step += 1
             # TODO: should application of callback be allowed here?
-            apply!(cb,psi,t=step*dt, bond=1,sweepend=true)
             checkdone!(cb,psi) && break
         end
 
         #finalize the last time step from the bunched steps
         for U in Uend
-            apply_gates!(psi,U; dir=dir, kwargs...)
-            dir = switchdir(dir)
+            apply_gates!(psi,U; reversed = rev, kwargs...)
+            rev = !rev
         end
 
         length(Uend)>0 && (step += 1)

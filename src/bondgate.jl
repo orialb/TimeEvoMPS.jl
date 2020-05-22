@@ -31,9 +31,9 @@ MPS tensors `psi[b],psi[b+1]` (with `b` the bond on which `G` acts).
 # Keyword arguments:
 All keyword accepted by `ITensors.replacebond!`.
 The important ones are:
-- `dir::String`: Options are ["fromleft", "fromright","center"].
-    If "fromleft" orthogonality center will be at `b+1` after update, if "fromright"
-    orthogonality center will be at `b`. If "center" the update is `psi[b] = U*sqrt(S)`
+- `ortho::String`: Options are ["left", "right"].
+    If "left" orthogonality center will be at `b` after update, if "right"
+    orthogonality center will be at `b+1`
     and `psi[b+1]= sqrt(S)*V'`.
 - `maxdim::Int`: If specified, keep only `maxdim` largest singular values after applying gate.
 - `mindim::Int`: Minimal number of singular values to keep if truncation is performed according to
@@ -42,32 +42,25 @@ The important ones are:
     smaller than `cutoff` (but bond dimension will be kept smaller than `maxdim`).
 - `absoluteCutoff::Bool`: If `true` truncate all singular-values whose square is smaller than `cutoff`.
 """
-function apply_gate!(psi::MPS,G::BondGate ; dir::String, kwargs...)
+function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     b = bond(G)
     orthogonalize!(psi,b)
     wf = psi[b]*psi[b+1]
     wf = noprime( G*(psi[b]*psi[b+1]) )
-    spec = replacebond!(psi, b, wf; kwargs...)
-    if get(kwargs,:normalize,true)
-        if dir=="fromleft"
-            psi[b+1] /= sqrt(sum(eigs(spec)))
-        elseif dir=="fromright"
-            psi[b] /= sqrt(sum(eigs(spec)))
-        end
-    end
+    spec = replacebond!(psi, b, wf; normalize=get(kwargs, :normalize,true), kwargs...)
+    return spec
 end
 
 #TODO: need to rethink this function as the dir functionality either
 # has misleading name or is making an assumption about the ordering of
 # the gates in Gs
-function apply_gates!(psi::MPS, Gs::Vector{BondGate} ; kwargs...)
-    dir = get(kwargs,:dir,"fromleft")
-    if dir == "fromleft"
-        return map(x->apply_gate!(psi,x;kwargs...), Gs)
-    elseif dir == "fromright"
-        return map(x->apply_gate!(psi,x;kwargs...), @view Gs[end:-1:1])
-    else
-        throw("`dir` must be \"fromleft\",\"fromright\" ")
+function apply_gates!(psi::MPS, Gs::Vector{BondGate}; kwargs...)
+    rev = get(kwargs,:reversed,false)
+    cb_func = get(kwargs,:cb, nothing)
+    Gs_ordered = rev ? (@view Gs[end:-1:1]) : Gs
+    for g in Gs_ordered
+        spec=apply_gate!(psi,g; kwargs...)
+        cb_func != nothing && cb_func(psi; bond=bond(g),spec=spec)
     end
 end
 

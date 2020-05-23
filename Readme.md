@@ -35,7 +35,7 @@ h = 0.5
 
 # Use ITensors to define initial fully-polarized MPS
 sites = siteinds("S=1/2",N)
-psi = productMPS(sites, fill("↑",N))
+psi = productMPS(ComplexF64,sites, fill("↑",N))
 ```
 
 ## TEBD
@@ -91,15 +91,43 @@ H= MPO(ampo,sites)
 
 Now we can run time-evolution using TDVP. 
 ```julia
-psi = complex!(psi)
 tdvp!(psi,H,dt,tf,maxdim=maxdim)
 ```
 
-( Note that currently for real-time evolution the ITensors stored 
-in the MPS `psi` must be of type `Complex` (this will hopefully not be necessary in the future).
-I couldn't find a way to initialize an ITensors.MPS with `ComplexF64` (probably this will be available in the future)
-so I wrote a quick hack (the `complex!` function) to convert a `Float` MPS to a `Complex` MPS just by multiplying each 
-ITensor by complex unity. This is just a temporary thing.)
+## Callbacks (i.e. performing measurements during time-evolution) (WIP)
+
+Probably you will be interested in measuring some observables at different time points during the evolution.
+This is possible using the callback mechanism which allows you to access the state of the system at each 
+points of the evolution. Callbacks can also be used to stop the time-evolution if certain criteria have been met
+(e.g. convergence of some observables). You could use one of the implemented callbacks or implement a callback of your own
+(the callback mechanism is still work in progress, so the API might change).
+
+### Local measurements callback
+
+Currently a `LocalMeasurmentCallback` is implemented which allows measuring single-site operators. 
+Here is how you would use it to measure the expectation values of `Sz,Sx,Sy`, with measurement interval `dt=0.2` 
+(time evolving with the MPO `H` defined in the previous section):
+```julia
+psi = productMPS(sites, fill("↑",N))
+cb = LocalMeasurementCallback(["Sz","Sx","Sy"], sites,0.2)
+tdvp!(psi,H,0.1,5,maxdim=30,callback=cb)
+```
+note that the measurment interval must be commensurate with the time-evolution step (here `0.1`).
+
+Now you can extract the measurement results from the callback calling `measurements(cb)`. For example here is how you could plot
+the measurements, using e.g. PyPlot.jl: 
+```julia
+using PyPlot
+ts = measurement_ts(cb)
+for o in ["x","y","z"]
+    S5 = getindex.(measurements(cb)["S$o"],5)
+    plot(ts,S5,"-o",label="\$S^$(o)_5\$")
+end
+legend()
+xlabel("t")
+```
+
+### Implementing a custom callback (TODO)
 
 ## References
 [1] Vidal, G. (2004). Efficient Simulation of One-Dimensional Quantum Many-Body

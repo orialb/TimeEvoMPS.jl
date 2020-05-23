@@ -1,5 +1,7 @@
 export TEvoCallback,
-       NoTEvoCallback
+    NoTEvoCallback,
+    LocalMeasurementCallback,
+    measurement_ts
 
 """
 A TEvoCallback can implement the following methods:
@@ -43,7 +45,7 @@ function LocalMeasurementCallback(ops,sites,dt_measure)
 end
 
 measurement_ts(cb::LocalMeasurementCallback) = cb.ts
-measurements(cb::LocalMeasurementCallback) = cb.measurements
+ITensors.measurements(cb::LocalMeasurementCallback) = cb.measurements
 callback_dt(cb::LocalMeasurementCallback) = cb.dt_measure
 ops(cb::LocalMeasurementCallback) = cb.ops
 sites(cb::LocalMeasurementCallback) = cb.sites

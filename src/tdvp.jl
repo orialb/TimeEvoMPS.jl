@@ -64,6 +64,13 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             spec = replacebond!(psi,b,wf;normalize=normalize, ortho = dir, kwargs... )
             # normalize && ( psi[dir=="left" ? b+1 : b] /= sqrt(sum(eigs(spec))) )
 
+            apply!(cb,psi; t=s*dt,
+                   bond=b,
+                   sweepend= ha==2,
+                   sweepdir= ha==1 ? "right" : "left",
+                   spec=spec,
+                   alg=TDVP2())
+
             # evolve with single-site Hamiltonian backward in time.
             # In the case of imaginary time-evolution this step
             # is not necessary (see Ref. [1])
@@ -79,12 +86,6 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
                 psi[i] /= sqrt(real(scalar(dag(psi[i])*psi[i])))
             end
 
-            apply!(cb,psi; t=s*dt,
-                   bond=b,
-                   sweepend= ha==2,
-                   sweepdir= ha==1 ? "right" : "left",
-                   spec=spec,
-                   alg=TDVP2())
         end
         end
         if verbose

@@ -57,7 +57,7 @@ function apply_gates!(psi::MPS, Gs::Vector{BondGate}; kwargs...)
     Gs_ordered = rev ? (@view Gs[end:-1:1]) : Gs
     for g in Gs_ordered
         spec=apply_gate!(psi,g; kwargs...)
-        cb_func != nothing && cb_func(psi; bond=bond(g),spec=spec)
+        !isnothing(cb_func) && cb_func(psi; bond=bond(g),spec=spec)
     end
 end
 

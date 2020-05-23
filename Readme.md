@@ -96,11 +96,14 @@ tdvp!(psi,H,dt,tf,maxdim=maxdim)
 
 ## Callbacks (i.e. performing measurements during time-evolution) (WIP)
 
-Probably you will be interested in measuring some observables at different time points during the evolution.
-This is possible using the callback mechanism which allows you to access the state of the system at each 
-points of the evolution. Callbacks can also be used to stop the time-evolution if certain criteria have been met
-(e.g. convergence of some observables). You could use one of the implemented callbacks or implement a callback of your own
-(the callback mechanism is still work in progress, so the API might change).
+Probably you will be interested in measuring some observables at different time
+points during the evolution. This is possible using the callback mechanism which
+allows you to access the state of the system at each point of the evolution
+(including steps in the middle of the TEBD/TDVP sweep). Callbacks can also be
+used to stop the time-evolution if certain criteria have been met (e.g.
+convergence of some observables). You could use one of the implemented callbacks
+or implement a callback of your own (the callback mechanism is still work in
+progress, so the API might change).
 
 ### Local measurements callback
 

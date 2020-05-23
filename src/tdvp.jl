@@ -4,6 +4,8 @@ using ITensors: position!
 singlesite!(PH::ProjMPO) = (PH.nsite = 1)
 twosite!(PH::ProjMPO) = (PH.nsite = 2)
 
+struct TDVP2 end
+
 """
     tdvp!(psi,H::MPO,dt,tf; kwargs...)
 Evolve the MPS `psi` up to time `tf` using the two-site time-dependent variational
@@ -34,7 +36,7 @@ https://doi.org/10.1103/PhysRevB.94.165116
 """
 function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     nsteps = Int(tf/dt)
-    obs = get(kwargs,:observer, NoTEvoObserver())
+    cb = get(kwargs,:callback, NoTEvoCallback())
     hermitian = get(kwargs,:hermitian,false)
     exp_tol = get(kwargs,:exp_tol, 1e-14)
     verbose = get(kwargs,:verbose, false)
@@ -59,8 +61,15 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
             wf, info = exponentiate(PH, -τ/2, wf; ishermitian=hermitian , tol=exp_tol, krylovdim=krylovdim)
             dir = ha==1 ? "left" : "right"
             info.converged==0 && throw("exponentiate did not converge")
-            spec = replacebond!(psi,b,wf; ortho = dir, kwargs... )
-            normalize && ( psi[dir=="left" ? b+1 : b] /= sqrt(sum(eigs(spec))) )
+            spec = replacebond!(psi,b,wf;normalize=normalize, ortho = dir, kwargs... )
+            # normalize && ( psi[dir=="left" ? b+1 : b] /= sqrt(sum(eigs(spec))) )
+
+            apply!(cb,psi; t=s*dt,
+                   bond=b,
+                   sweepend= ha==2,
+                   sweepdir= ha==1 ? "right" : "left",
+                   spec=spec,
+                   alg=TDVP2())
 
             # evolve with single-site Hamiltonian backward in time.
             # In the case of imaginary time-evolution this step
@@ -76,11 +85,12 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
                 # TODO not sure if this is necessary anymore
                 psi[i] /= sqrt(real(scalar(dag(psi[i])*psi[i])))
             end
+
         end
         end
         if verbose
             @printf("Step %d : maxlinkdim= %d, sweep time= %.3f \n", s,maxlinkdim(psi), stime)
         end
-        checkdone!(obs) && break
+        checkdone!(cb) && break
     end
 end

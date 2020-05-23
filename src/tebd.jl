@@ -91,14 +91,21 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     # one option would be to use round(tf/dt) and verify that abs(round(tf/dt)-tf/dt)
     # is smaller than some threshold. Another option would be to use big(Rational(dt)).
     nsteps = Int(tf/dt)
-    obs = get(kwargs,:observer, NoTEvoObserver())
+    cb = get(kwargs,:callback, NoTEvoCallback())
+    cb_func(dt,step,rev,se) = (psi; bond, spec) -> apply!(cb,psi;
+                                                              t=dt*step,
+                                                              bond=bond,
+                                                              spec=spec,
+                                                              sweepdir=rev ? "left" : "right",
+                                                              sweepend= se,
+                                                              alg = alg)
     orthogonalize_step = get(kwargs,:orthogonalize,0)
 
     #We can bunch together half-time steps, when we don't need to measure observables
-    dtm = measurement_dt(obs)
+    dtm = callback_dt(cb)
     if dtm > 0
-        floor(dtm / dt) != dtm /dt && throw("Measurement time step $dtm incommensurate with time-evolution time step $dt")
-        mstep = floor(dtm / dt)
+        floor(Int64, dtm / dt) != dtm /dt && throw("Measurement time step $dtm incommensurate with time-evolution time step $dt")
+        mstep = floor(Int64,dtm / dt)
         nbunch = gcd(mstep,nsteps)
     else
         nbunch = nsteps
@@ -110,34 +117,34 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     length(Ustart)==0 && length(Uend)==0 && (nbunch+=1)
 
     step = 0
-    switchdir(dir) =dir== "fromleft" ? "fromright" : "fromleft"
-    dir = "fromleft"
+    switchdir(rev) = !(rev)
+    rev = false
     while step < nsteps
         for U in Ustart
-            apply_gates!(psi, U ; dir = dir, kwargs...)
-            dir = switchdir(dir)
+            apply_gates!(psi, U ; reversed = rev, kwargs...)
+            rev = !rev
         end
 
         for i in 1:nbunch-1
             for U in Us
-                apply_gates!(psi,U; dir=dir, kwargs...)
-                dir = switchdir(dir)
+                apply_gates!(psi,U; reversed=rev,
+                             cb=cb_func(dt,step,rev,false), kwargs...)
+                rev = !rev
             end
             step += 1
-            observe!(obs,psi,t=step*dt)
-            checkdone!(obs,psi) && break
+            checkdone!(cb,psi) && break
         end
 
         #finalize the last time step from the bunched steps
-        for U in Uend
-            apply_gates!(psi,U; dir=dir, kwargs...)
-            dir = switchdir(dir)
+        for (i,U) in enumerate(Uend)
+            apply_gates!(psi,U; reversed = rev, cb=cb_func(dt,step+1,rev,i==length(Uend)), kwargs...)
+            rev = !rev
         end
 
         length(Uend)>0 && (step += 1)
+        # TODO: make this a callback
         (orthogonalize_step>0 && step % orthogonalize_step ==0) && reorthogonalize!(psi)
-        observe!(obs,psi, t=step*dt)
-        checkdone!(obs,psi) && break
+        checkdone!(cb,psi) && break
     end
     return psi
 end

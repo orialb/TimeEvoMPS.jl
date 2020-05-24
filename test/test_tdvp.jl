@@ -93,4 +93,25 @@ end
     @test Es[end] ≈ eexact atol=1e-4
 end
 
+@testset "compare free-fermions" begin
+    N = 20
+    dt = 0.1
+    tf = 2
+    sites = siteinds("Fermion",N, conserve_nf = true)
+    ampo = AutoMPO()
+    for b in 1:N-1
+        add!(ampo,1,"Cdag",b, "C",b+1)
+        add!(ampo,-1,"C",b,"Cdag",b+1)
+    end
+    H =MPO(ampo,sites)
+    psi = productMPS(sites, [i%2==0 ? "Emp" : "Occ" for i in 1:N])
+    cb = LocalMeasurementCallback(["N"], sites,0.1)
+    tdvp!(psi,H,dt,tf, cutoff=1e-10,callback=cb, progress=false)
 
+    ns_exec = free_fermions_densities(N,0.1,tf)
+    ns = measurements(cb)["N"]
+
+    for i in 1:length(ns)
+        @test all( abs.(ns[i] - ns_exec[i+1]).< 5e-5)
+    end
+end

@@ -14,8 +14,8 @@ using TimeEvoMPS: measure!
     psi = deepcopy(psi0)
     nsteps = 20
     dt = 1e-1
-    tdvp!(psi,H,dt,nsteps*dt, hermitian=true,exp_tol=1e-12/dt,cutoff=1e-14)
-    tdvp!(psi,H,-dt,-nsteps*dt, hermitian=true, exp_tol=1e-12/dt, cutoff=1e-14)
+    tdvp!(psi,H,dt,nsteps*dt, hermitian=true,exp_tol=1e-12/dt,cutoff=1e-14, progress=false)
+    tdvp!(psi,H,-dt,-nsteps*dt, hermitian=true, exp_tol=1e-12/dt, cutoff=1e-14, progress=false)
 
     @test inner(psi,psi) ≈ 1
     @test inner(psi0,psi) ≈ 1
@@ -28,7 +28,7 @@ using TimeEvoMPS: measure!
     dt = 1e-1
     E0 = inner(psi,H,psi)
 
-    tdvp!(psi,H,dt,nsteps*dt, hermitian=true)
+    tdvp!(psi,H,dt,nsteps*dt, hermitian=true, progress=false)
     E1 = inner(psi,H,psi)
     @test E0 ≈ E1
 
@@ -37,7 +37,7 @@ using TimeEvoMPS: measure!
     sites = siteinds("S=1/2",N)
     H = tfi_mpo(J,h,sites)
     psi = productMPS(ComplexF64,sites, fill("↑",N))
-    tdvp!(psi,H,1,10,maxdim=5,hermitian=true)
+    tdvp!(psi,H,1,10,maxdim=5,hermitian=true, progress=false)
 
     @test isapprox(inner(psi,psi), 1., atol=1e-10)
 
@@ -52,10 +52,10 @@ end
     psi_tdvp = complex!(deepcopy(psi_tebd))
 
     H = tfi_mpo(J,h,sites)
-    tdvp!(psi_tdvp,H,dt,tf, cutoff=1e-12, hermitian=true)
+    tdvp!(psi_tdvp,H,dt,tf, cutoff=1e-12, hermitian=true, progress=false)
 
     H = tfi_bondop(sites,J,h)
-    tebd!(psi_tebd,H,dt,tf,cutoff=1e-12,hermitian=true)
+    tebd!(psi_tebd,H,dt,tf,cutoff=1e-12,hermitian=true, progress=false)
 
     # problem is that the error in TDVP scales as
     # Δt^4 while in TEBD2 it scales as Δt^2
@@ -83,7 +83,7 @@ end
     Es = []
     nsteps = 100
     for dt in [0.1]
-        tdvp!(psi,H,-1im*dt,-1im*nsteps*dt ; maxdim=50, hermitian=true, exp_tol = 1e-14/dt)
+        tdvp!(psi,H,-1im*dt,-1im*nsteps*dt ; maxdim=50, hermitian=true, exp_tol = 1e-14/dt, progress= false)
         push!(Es, inner(psi,H,psi))
     end
 

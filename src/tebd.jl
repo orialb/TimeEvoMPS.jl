@@ -116,6 +116,8 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
 
     length(Ustart)==0 && length(Uend)==0 && (nbunch+=1)
 
+    pbar = get(kwargs,:progress, true) ? Progress(nsteps, desc="Evolving state... ") : nothing
+
     step = 0
     switchdir(rev) = !(rev)
     rev = false
@@ -126,24 +128,43 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
         end
 
         for i in 1:nbunch-1
+
+            stime = @elapsed begin
             for U in Us
                 apply_gates!(psi,U; reversed=rev,
                              cb=cb_func(dt,step,rev,false), kwargs...)
                 rev = !rev
             end
+            end
             step += 1
+
+            !isnothing(pbar) && ProgressMeter.next!(pbar, showvalues=[("t", dt*step),
+                                                                  ("dt step time", round(stime,digits=3)),
+                                                                  ("Max bond-dim", maxlinkdim(psi))])
             checkdone!(cb,psi) && break
         end
 
         #finalize the last time step from the bunched steps
+        stime = @elapsed begin
         for (i,U) in enumerate(Uend)
             apply_gates!(psi,U; reversed = rev, cb=cb_func(dt,step+1,rev,i>=length(Uend)-1), kwargs...)
             rev = !rev
         end
+        end
 
-        length(Uend)>0 && (step += 1)
+        if length(Uend)>0
+            step += 1
+            if !isnothing(pbar)
+                ProgressMeter.next!(pbar,
+                                    showvalues=[("t", dt*step),
+                                                ("dt step time", round(stime,digits=3)),
+                                                ("Max bond-dim", maxlinkdim(psi))])
+            end
+        end
+
         # TODO: make this a callback
         (orthogonalize_step>0 && step % orthogonalize_step ==0) && reorthogonalize!(psi)
+
         checkdone!(cb,psi) && break
     end
     return psi

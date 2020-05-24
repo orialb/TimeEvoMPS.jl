@@ -11,7 +11,7 @@ using TimeEvoMPS: isleftortho, isrightortho, measure!
             psi0 = randomMPS(sites)
             orthogonalize!(psi0,1)
             psi = deepcopy(psi0)
-            tebd!(psi,trivialH,0.01,1., alg)
+            tebd!(psi,trivialH,0.01,1., alg, progress=false)
 
             @test inner(psi0,psi) ≈ 1
 
@@ -22,14 +22,14 @@ using TimeEvoMPS: isleftortho, isrightortho, measure!
 
             psi0 = randomMPS(sites)
             psi = deepcopy(psi0)
-            tebd!(psi,H,0.01,1.,alg)
-            tebd!(psi,H,-0.01,-1.,alg)
+            tebd!(psi,H,0.01,1.,alg, progress=false)
+            tebd!(psi,H,-0.01,-1.,alg, progress=false)
 
             @test inner(psi0,psi) ≈ 1
 
             #check that bond dimension is growing to maximum during evolution
             psi = productMPS(sites,ones(Int,N))
-            tebd!(psi,H,0.01,5.,alg)
+            tebd!(psi,H,0.01,5.,alg, progress=false)
             @test maxlinkdim(psi) == 2^5
 
         end
@@ -41,7 +41,7 @@ using TimeEvoMPS: isleftortho, isrightortho, measure!
     sites = siteinds("S=1/2",N)
     H = tfi_bondop(sites,J,h)
     psi = productMPS(sites, fill("↑",N))
-    tebd!(psi,H,0.1,20,TEBD2(),maxdim=5)
+    tebd!(psi,H,0.1,20,TEBD2(),maxdim=5, progress=false)
 
     @test isapprox(inner(psi,psi), 1., atol=1e-10)
 
@@ -60,7 +60,7 @@ end
 
             Es = []
             for dt in [0.1,0.01]
-                tebd!(psi,H,-1im*dt,-1im*500*dt, alg ; maxdim=50, cutoff=1e-8, orthogonalize=10)
+                tebd!(psi,H,-1im*dt,-1im*500*dt, alg ; maxdim=50, cutoff=1e-8, orthogonalize=10, progress=false)
                 push!(Es, measure(gates(H),psi))
             end
             # exact expression for ground-state energy
@@ -81,8 +81,8 @@ end
     psi4 = complex!(deepcopy(psi2))
     H = tfi_bondop(sites,J,h)
 
-    tebd!(psi2,H,dt,tf,cutoff=1e-12)
-    tebd!(psi4,H,dt,tf,TEBD4(),cutoff=1e-12)
+    tebd!(psi2,H,dt,tf,cutoff=1e-12, progress=false)
+    tebd!(psi4,H,dt,tf,TEBD4(),cutoff=1e-12, progress=false)
 
     # since error in TEBD2 is O(t*dt²) while
     # error in TEBD4 is O(t*dt⁴) the most we can
@@ -99,7 +99,7 @@ end
     # (since N is very small we don't expect truncation errors kicking in here)
     psi4 = productMPS(sites,ones(Int,N))
     dt4 = 0.1
-    tebd!(psi4,H,dt4,tf,TEBD4())
+    tebd!(psi4,H,dt4,tf,TEBD4(), progress=false)
     @test inner(psi2,psi4) ≈ 1 atol=dt^2
     sz4 = measure!(psi4,"Sz")
     @test maximum(abs.(sz2 - sz4)) < dt^2

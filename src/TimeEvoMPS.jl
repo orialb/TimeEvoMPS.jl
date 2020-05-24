@@ -3,6 +3,7 @@ using ITensors
 using LinearAlgebra
 using Printf
 using KrylovKit: exponentiate
+using ProgressMeter
 
 include("itensor.jl")
 include("bondgate.jl")

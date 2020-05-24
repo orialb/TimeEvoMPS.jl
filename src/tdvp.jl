@@ -27,7 +27,7 @@ In addition the following keyword arguments are supported:
     case of an hermitian operator.
 - `exp_tol::Float` (1e-14) : The error tolerance for `KrylovKit.exponentiate`.
     (note that default value was not optimized yet, so you might want to play around with it)
-- `verbose::Bool` (`false`) : If `true`, print some information after every time-step.
+- `progress::Bool` (`true`) : If `true` a progress bar will be displayed
 
 # References:
 [1] Haegeman, J., Lubich, C., Oseledets, I., Vandereycken, B., & Verstraete, F. (2016).
@@ -39,11 +39,11 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     cb = get(kwargs,:callback, NoTEvoCallback())
     hermitian = get(kwargs,:hermitian,false)
     exp_tol = get(kwargs,:exp_tol, 1e-14)
-    verbose = get(kwargs,:verbose, false)
     krylovdim = get(kwargs,:krylovdim, 30 )
     maxiter = get(kwargs,:maxiter,100)
     normalize = get(kwargs,:normalize,true)
 
+    pbar = get(kwargs,:progress, true) ? Progress(nsteps, desc="Evolving state... ") : nothing
     τ = 1im*dt
     imag(τ) == 0 && (τ = real(τ))
 
@@ -88,9 +88,9 @@ function tdvp!(psi,H::MPO,dt,tf; kwargs...)
 
         end
         end
-        if verbose
-            @printf("Step %d : maxlinkdim= %d, sweep time= %.3f \n", s,maxlinkdim(psi), stime)
-        end
+        !isnothing(pbar) && ProgressMeter.next!(pbar, showvalues=[("t", dt*s),
+                                                                  ("dt step time", round(stime,digits=3)),
+                                                                  ("Max bond-dim", maxlinkdim(psi))])
         checkdone!(cb) && break
     end
 end

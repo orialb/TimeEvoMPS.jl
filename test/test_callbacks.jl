@@ -5,7 +5,7 @@ te = TimeEvoMPS
     obs = NoTEvoCallback()
     sites = siteinds("S=1/2",10)
     psi = randomMPS(sites)
-    @test te.apply!(obs,psi; t=0,bond=1,sweeend=true) == nothing
+    @test te.apply!(obs,psi; t=0,bond=1,sweepend=true) == nothing
     @test te.checkdone!(obs,psi) == false
     @test te.callback_dt(obs) == 0
 end
@@ -52,7 +52,7 @@ end
     H = tfi_bondop(sites,1.0,1.0)
     psi = productMPS(sites, fill("↑",N))
     cb = te.LocalMeasurementCallback(["Sz","Sx"], sites,0.5)
-    tebd!(psi,H,0.1,5,TEBD2(),maxdim=30,callback=cb,verbose=true)
+    tebd!(psi,H,0.1,5,TEBD2(),maxdim=30,callback=cb, progress=false)
 
     @test length(te.measurement_ts(cb))==length(0.5:0.5:5)
 
@@ -65,7 +65,7 @@ end
     H = tfi_mpo(1.0,1.0,sites)
     psi = productMPS(sites, fill("↑",N))
     cb2 = te.LocalMeasurementCallback(["Sz","Sx"], sites,0.5)
-    tdvp!(psi,H,0.1,5,maxdim=30,hermitian=true,callback=cb2)
+    tdvp!(psi,H,0.1,5,maxdim=30,hermitian=true,callback=cb2, progress= false)
 
     @test length(te.measurement_ts(cb2))==length(0.5:0.5:5)
     for i in 1:length(psi)
@@ -82,7 +82,7 @@ end
     H = tfi_bondop(sites,1.0,1.0)
     psi = productMPS(sites, fill("↑",N))
     cb = SpecCallback(0.1,psi)
-    tebd!(psi,H,0.1,5,TEBD2(),maxdim=30,callback=cb)
+    tebd!(psi,H,0.1,5,TEBD2(),maxdim=30,callback=cb, progress=false)
 
     for i in 1:length(psi)-1
         @test dim(linkind(psi,i)) == measurements(cb)["bonddim"][end][i]
@@ -100,7 +100,7 @@ end
     H = tfi_mpo(1.0,1.0,sites)
     psi = productMPS(sites, fill("↑",N))
     cb = SpecCallback(0.1,psi)
-    tdvp!(psi,H,0.1,5,maxdim=30,callback=cb)
+    tdvp!(psi,H,0.1,5,maxdim=30,callback=cb, progress= false)
 
     for i in 1:length(psi)-1
         @test dim(linkind(psi,i)) == measurements(cb)["bonddim"][end][i]

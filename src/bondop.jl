@@ -52,6 +52,12 @@ struct BondOperator
             Dict(i => Vector{SiteTerm}() for i in 1:length(sites)))
 end
 
+function Base.show(io::IO, bo::BondOperator)
+    println(io,"BondOperator")
+    print(io,"Site indices: ")
+    show(io,bo.sites)
+end
+
 Base.length(bo::BondOperator) = length(bo.sites)
 
 #TODO : add some error messages when trying to access site or bond out of range

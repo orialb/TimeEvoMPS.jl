@@ -137,7 +137,7 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
 
         #finalize the last time step from the bunched steps
         for (i,U) in enumerate(Uend)
-            apply_gates!(psi,U; reversed = rev, cb=cb_func(dt,step+1,rev,i==length(Uend)), kwargs...)
+            apply_gates!(psi,U; reversed = rev, cb=cb_func(dt,step+1,rev,i>=length(Uend)-1), kwargs...)
             rev = !rev
         end
 

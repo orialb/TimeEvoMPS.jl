@@ -1,5 +1,5 @@
 using Test, ITensors, TimeEvoMPS
-# const te = TimeEvoMPS
+te = TimeEvoMPS
 
 @testset "NoTEvoCallback" begin
     obs = NoTEvoCallback()
@@ -72,5 +72,46 @@ end
         orthogonalize!(psi,i)
         m = dot(psi[i], noprime(op(sites, "Sz", i)*psi[i]) )
         @test te.measurements(cb2)["Sz"][end][i] ≈ m
+    end
+end
+
+@testset "SpecCallback" begin
+    N=10
+    sites = siteinds("S=1/2",N)
+
+    H = tfi_bondop(sites,1.0,1.0)
+    psi = productMPS(sites, fill("↑",N))
+    cb = SpecCallback(0.1,psi)
+    tebd!(psi,H,0.1,5,TEBD2(),maxdim=30,callback=cb)
+
+    for i in 1:length(psi)-1
+        @test dim(linkind(psi,i)) == measurements(cb)["bonddim"][end][i]
+    end
+    for i in 1:length(psi)-1
+        orthogonalize!(psi,i)
+        if i>1
+            _,_,_,spec = svd(psi[i]*psi[i+1],linkind(psi,i-1),siteind(psi,i))
+        else
+            _,_,_,spec = svd(psi[i]*psi[i+1],siteind(psi,1))
+        end
+        @test entropy(spec) ≈ measurements(cb)["entropy"][end][i]
+    end
+
+    H = tfi_mpo(1.0,1.0,sites)
+    psi = productMPS(sites, fill("↑",N))
+    cb = SpecCallback(0.1,psi)
+    tdvp!(psi,H,0.1,5,maxdim=30,callback=cb)
+
+    for i in 1:length(psi)-1
+        @test dim(linkind(psi,i)) == measurements(cb)["bonddim"][end][i]
+    end
+    for i in 1:length(psi)-1
+        orthogonalize!(psi,i)
+        if i>1
+            _,_,_,spec = svd(psi[i]*psi[i+1],linkind(psi,i-1),siteind(psi,i))
+        else
+            _,_,_,spec = svd(psi[i]*psi[i+1],siteind(psi,1))
+        end
+        @test entropy(spec) ≈ measurements(cb)["entropy"][end][i]
     end
 end

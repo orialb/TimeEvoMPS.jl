@@ -21,7 +21,8 @@ bond(G::BondGate) = G.b
 
 const GateList = Vector{BondGate}
 
-exp(G::BondGate; hermitian=false) = BondGate( exp(G.G, findprimeinds(G.G), findprimeinds(G.G,0); ishermitian=hermitian), G.b)
+exp(G::BondGate; ishermitian=false) = BondGate(exp(G.G, findprimeinds(G.G), findprimeinds(G.G,0);
+                                                    ishermitian=ishermitian), G.b)
 
 """
     apply_gate!(psi::MPS,G::BondGate ; kwargs...)
@@ -40,7 +41,7 @@ The important ones are:
     value specified by `cutoff`.
 - `cutoff::Float`: If specified, keep the minimal number of singular-values such that the discarded weight is
     smaller than `cutoff` (but bond dimension will be kept smaller than `maxdim`).
-- `absoluteCutoff::Bool`: If `true` truncate all singular-values whose square is smaller than `cutoff`.
+- `use_absolute_cutoff::Bool = false`: If `true` truncate all singular-values whose square is smaller than `cutoff`.
 """
 function apply_gate!(psi::MPS,G::BondGate ; kwargs...)
     b = bond(G)

@@ -53,18 +53,20 @@ the ``exp(-iH_o τᵢ/2)`` terms from consecutive Us and time-steps (except at m
 struct TEBD4 <: TEBDalg
 end
 
-function time_evo_gates(dt, H::GateList, alg::TEBD2)
-    Uhalf = exp.(-1im*dt/2 .* H[1:2:end])
-    Us = [exp.( -1im*dt .* H[2:2:end]), exp.(-1im*dt .* H[1:2:end])]
+function time_evo_gates(dt, H::GateList, alg::TEBD2; ishermitian=false)
+    Uhalf = exp.(-1im*dt/2 .* H[1:2:end]; ishermitian=ishermitian)
+    Us = [exp.( -1im*dt .* H[2:2:end]; ishermitian=ishermitian),
+          exp.(-1im*dt .* H[1:2:end]; ishermitian=ishermitian)]
     return [Uhalf ], Us, [Us[1], Uhalf]
 end
 
-function time_evo_gates(dt,H::GateList,alg::TEBD2Sweep)
-    Us = [exp.(-1im*dt/2 .* H), exp.(-1im*dt/2 .* H)]
+function time_evo_gates(dt,H::GateList,alg::TEBD2Sweep; ishermitian=false)
+    Us = [exp.(-1im*dt/2 .* H, ishermitian=ishermitian),
+          exp.(-1im*dt/2 .* H; ishermitian=ishermitian)]
     return [], Us, []
 end
 
-function time_evo_gates(dt,H::GateList,alg::TEBD4)
+function time_evo_gates(dt,H::GateList,alg::TEBD4; ishermitian=false)
     τ₁ = 1/(4-4^(1/3))*dt
     τ₂ = τ₁
     τ₃ = dt - 2*τ₁ - 2*τ₂
@@ -75,11 +77,11 @@ function time_evo_gates(dt,H::GateList,alg::TEBD4)
 
     sequence = [(τ₁, e), (τ₁, o ), (τ₂,e), ((τ₂+τ₃)/2, o), (τ₃, e),
                 ((τ₂+τ₃)/2, o), (τ₂,e), (τ₂,o), (τ₁,e), (τ₁,o)]
-    Us = map(x->exp.(-1im*x[1] .* H[x[2]]), sequence)
+    Us = map(x->exp.(-1im*x[1] .* H[x[2]]; ishermitian=ishermitian), sequence)
 
     end_sequence = [(τ₁, e), (τ₁, o ), (τ₂,e), ((τ₂+τ₃)/2, o), (τ₃, e),
                     ((τ₂+τ₃)/2, o), (τ₂,e), (τ₂,o), (τ₁,e), (τ₁/2,o)]
-    Uend = map(x->exp.(-1im*x[1] .* H[x[2]]), end_sequence)
+    Uend = map(x->exp.(-1im*x[1] .* H[x[2]]; ishermitian=ishermitian), end_sequence)
 
     return Ustart, Us , Uend
 end
@@ -91,6 +93,12 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     # one option would be to use round(tf/dt) and verify that abs(round(tf/dt)-tf/dt)
     # is smaller than some threshold. Another option would be to use big(Rational(dt)).
     nsteps = Int(tf/dt)
+
+    # TODO: use ishermitian for imaginary time-evolution once exponentiation
+    # of hermitian ITensor is fixed (see https://github.com/ITensor/NDTensors.jl/pull/15).
+    # ishermitian = get(kwargs, :ishermitian, dt isa Complex && real(dt)==0)
+    ishermitian = get(kwargs, :ishermitian, false)
+
     cb = get(kwargs,:callback, NoTEvoCallback())
     cb_func(dt,step,rev,se) = (psi; bond, spec) -> apply!(cb,psi;
                                                               t=dt*step,
@@ -112,7 +120,7 @@ function tebd!(psi::MPS, H::GateList, dt::Number, tf::Number, alg::TEBDalg = TEB
     end
     orthogonalize_step > 0 && (nbunch = gcd(nbunch,orthogonalize_step))
 
-    Ustart, Us, Uend = time_evo_gates(dt,H,alg)
+    Ustart, Us, Uend = time_evo_gates(dt,H,alg; ishermitian=ishermitian)
 
     length(Ustart)==0 && length(Uend)==0 && (nbunch+=1)
 

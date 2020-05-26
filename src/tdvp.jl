@@ -22,7 +22,7 @@ namely:
 - `absoluteCutoff::Bool`: If `true` truncate all singular-values whose square is smaller than `cutoff`.
 
 In addition the following keyword arguments are supported:
-- `hermitian::Bool` (`false`) : whether the MPO `H` represents an Hermitian operator. This will be passed to the
+- `hermitian::Bool` (`true`) : whether the MPO `H` represents an Hermitian operator. This will be passed to the
     Krylov exponentiation routine (`KrylovKit.exponentiate`) which will in turn use a Lancosz algorithm in the
     case of an hermitian operator.
 - `exp_tol::Float` (1e-14) : The error tolerance for `KrylovKit.exponentiate`.
@@ -37,7 +37,7 @@ https://doi.org/10.1103/PhysRevB.94.165116
 function tdvp!(psi,H::MPO,dt,tf; kwargs...)
     nsteps = Int(tf/dt)
     cb = get(kwargs,:callback, NoTEvoCallback())
-    hermitian = get(kwargs,:hermitian,false)
+    hermitian = get(kwargs,:hermitian,true)
     exp_tol = get(kwargs,:exp_tol, 1e-14)
     krylovdim = get(kwargs,:krylovdim, 30 )
     maxiter = get(kwargs,:maxiter,100)

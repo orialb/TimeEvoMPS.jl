@@ -53,20 +53,20 @@ the ``exp(-iH_o τᵢ/2)`` terms from consecutive Us and time-steps (except at m
 struct TEBD4 <: TEBDalg
 end
 
-function time_evo_gates(dt, H::GateList, alg::TEBD2; ishermitian=true)
+function time_evo_gates(dt, H::GateList, alg::TEBD2; ishermitian=false)
     Uhalf = exp.(-1im*dt/2 .* H[1:2:end]; ishermitian=ishermitian)
     Us = [exp.( -1im*dt .* H[2:2:end]; ishermitian=ishermitian),
           exp.(-1im*dt .* H[1:2:end]; ishermitian=ishermitian)]
     return [Uhalf ], Us, [Us[1], Uhalf]
 end
 
-function time_evo_gates(dt,H::GateList,alg::TEBD2Sweep; ishermitian=ishermitian)
+function time_evo_gates(dt,H::GateList,alg::TEBD2Sweep; ishermitian=false)
     Us = [exp.(-1im*dt/2 .* H, ishermitian=ishermitian),
           exp.(-1im*dt/2 .* H; ishermitian=ishermitian)]
     return [], Us, []
 end
 
-function time_evo_gates(dt,H::GateList,alg::TEBD4; ishermitian=true)
+function time_evo_gates(dt,H::GateList,alg::TEBD4; ishermitian=false)
     τ₁ = 1/(4-4^(1/3))*dt
     τ₂ = τ₁
     τ₃ = dt - 2*τ₁ - 2*τ₂
